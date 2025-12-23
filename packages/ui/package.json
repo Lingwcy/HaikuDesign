@@ -1,0 +1,14 @@
+{
+    "name": "haiku-ui",
+    "version": "1.0.0",
+    "private": true,
+    "license": "MIT",
+
+    "devDependencies": {
+
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Lingwcy/HaikuDesign"
+    }
+}
