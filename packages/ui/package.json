@@ -3,9 +3,16 @@
     "version": "1.0.0",
     "private": true,
     "license": "MIT",
-
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts"
+    },
     "devDependencies": {
-
+        "tsup": "^8.5.1"
+    },
+    "peerDependencies": {
+        "react": "catalog:",
+        "react-dom": "catalog:"
     },
     "repository": {
         "type": "git",
