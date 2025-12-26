@@ -11,7 +11,7 @@ hero:
       link: /guide/
     - theme: alt
       text: 组件列表
-      link: /compoents/
+      link: /components/
   image:
     src: /rspress-icon.png
     alt: Logo

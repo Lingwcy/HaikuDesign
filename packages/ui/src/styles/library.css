@@ -1,0 +1,10 @@
+@import "tailwindcss/theme";
+
+@import "./preset.css";
+
+/* Scan UI source so only the classes we actually use get generated. */
+@source "../**/*.{js,jsx,ts,tsx}";
+
+/* Generate the utilities (including custom @utility rules). */
+@import "tailwindcss/utilities";
+

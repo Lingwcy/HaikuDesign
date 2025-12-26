@@ -4,12 +4,40 @@
     "private": true,
     "license": "MIT",
     "type": "module",
+    "files": [
+        "dist"
+    ],
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "exports": {
-        ".": "./src/index.ts"
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        },
+        "./styles.css": "./dist/styles.css",
+        "./preset.css": "./dist/preset.css"
     },
     "scripts": {
+        "build": "tsup src/index.ts --format esm,cjs --dts --clean && pnpm run build:css",
+        "build:css": "node scripts/build-css.mjs --check",
+        "dev:css": "node scripts/build-css.mjs --watch",
+        "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+        "typecheck": "tsc --noEmit"
+    },
+    "sideEffects": [
+        "**/*.css"
+    ],
+    "dependencies": {
+        "clsx": "^2.1.1",
+        "tailwind-merge": "^3.3.1"
     },
     "devDependencies": {
+        "@tailwindcss/postcss": "^4.1.18",
+        "autoprefixer": "^10.4.23",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.1.18",
         "tsup": "^8.5.1"
     },
     "peerDependencies": {
