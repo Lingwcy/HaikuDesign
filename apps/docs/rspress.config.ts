@@ -5,6 +5,7 @@ export default defineConfig({
   root: path.join(__dirname, 'docs'),
   title: 'My Site',
   icon: '/rspress-icon.png',
+  globalStyles: path.join(__dirname, 'docs/styles/tailwind.css'),
   logo: {
     light: '/rspress-light-logo.png',
     dark: '/rspress-dark-logo.png',

@@ -1,0 +1,7 @@
+
+@import "tailwindcss";
+@import "haiku-ui/preset.css";
+@import "haiku-ui/styles.css";
+
+@source "../**/*.{md,mdx,ts,tsx}";
+

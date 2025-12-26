@@ -1,4 +1,41 @@
-# 按钮
+---
+title: Button按钮
+---
+# Button按钮
+:::note
+按钮用于开始一个即时操作。
+:::
+## 何时使用
 
-swad
+标记一个（或封装一组）操作命令，响应用户点击行为，触发相应的业务逻辑。
 
+在 Haiku Design 中，我们提供以下按钮类型与状态属性：
+
+#### 按钮类型
+
+- 🔵 **主按钮**：用于主行动点；一个操作区域通常只能有一个主按钮。
+- ⚪️ **默认按钮**：用于没有主次之分的一组行动点。
+- 😶 **虚线按钮**：常用于“添加”等操作。
+- 🔤 **文本按钮**：用于最次级的行动点。
+- 🔗 **链接按钮**：用于跳转导航至某位置。
+
+#### 状态属性
+
+- ⚠️ **危险**：删除/移动/修改权限等高风险操作，一般需要二次确认。
+- 👻 **幽灵**：用于背景色较复杂的场景，常见于首页/产品页等展示区域。
+- 🚫 **禁用**：行动点不可用时使用，一般需要配合文案解释原因。
+- 🔃 **加载中**：用于异步操作等待反馈，也可避免重复提交。
+## 代码演示
+import { Button } from 'haiku-ui'
+
+<div className="flex flex-wrap gap-4">
+    <Button className='bg-primary-900'>Haiku Design</Button>
+    <Button className='bg-primary-800'>Haiku Design</Button>
+    <Button className='bg-primary-700'>Haiku Design</Button>
+    <Button className='bg-primary-600'>Haiku Design</Button>
+    <Button className='bg-primary-500'>Haiku Design</Button>
+    <Button className='bg-primary-400'>Haiku Design</Button>
+    <Button className='bg-primary-300'>Haiku Design</Button>
+    <Button className='bg-primary-200'>Haiku Design</Button>
+    <Button className='bg-primary-100'>Haiku Design</Button>
+</div>
