@@ -1,0 +1,62 @@
+---
+title: Avatar
+---
+
+import { Avatar, PlayBoard } from "haiku-ui"
+import * as React from "react"
+
+
+<div className='flex flex-col gap-8'>
+  <PlayBoard
+    heading="基本"
+    description="头像有三种尺寸，两种形状可选。"
+    code={``}
+  >
+    <div className="flex flex-wrap flex-col gap-4">
+      <div className="flex gap-2 items-center">
+        <Avatar icon="mdi:user" size="sm" />
+        <Avatar icon="mdi:user" size="md" />
+        <Avatar icon="mdi:user" size="lg" />
+      </div>
+
+      <div className="flex gap-2 items-center">
+        <Avatar icon="mdi:user" size="sm" shape="square"/>
+        <Avatar icon="mdi:user" size="md" shape="square" />
+        <Avatar icon="mdi:user" size="lg" shape="square" />
+      </div>
+    </div>                                                                                                                                                                                                                                                                                    
+  </PlayBoard>
+
+
+  <PlayBoard
+    heading="变体 variant"
+    description="头像有多种颜色变体可选。"
+    code={``}
+  >
+    <div className="flex flex-wrap flex-col gap-4">
+      <div className="flex gap-2 items-center">
+        <Avatar icon="streamline-ultimate-color:vk-logo" size="md" shape="rounded" variant="success" />
+        <Avatar icon="streamline-ultimate-color:vk-logo" size="md" shape="rounded" variant="primary" />
+        <Avatar icon="streamline-ultimate-color:vk-logo" size="md" shape="rounded" variant="info" />
+        <Avatar icon="streamline-ultimate-color:vk-logo" size="md" shape="rounded" variant="danger" />
+        <Avatar icon="streamline-ultimate-color:vk-logo" size="md" shape="rounded" variant="warning" />
+        <Avatar icon="streamline-ultimate-color:vk-logo" size="md" shape="rounded" variant="ghost" />
+      </div>
+    </div>
+
+  </PlayBoard>
+
+
+    <PlayBoard
+    heading="源图像 url"
+    description="头像也可以使用图像 url 作为图像来源。"
+    code={``}
+  >
+    <div className="flex flex-wrap flex-col gap-4">
+      <div className="flex gap-2 items-center">
+        <Avatar url="https://static0.gamerantimages.com/wordpress/wp-content/uploads/2022/05/Kirito-entry-image.jpg" size="lg" shape="rounded" variant="success" />
+      </div>
+    </div>
+
+  </PlayBoard>
+</div>

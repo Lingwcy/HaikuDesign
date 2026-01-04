@@ -1,10 +1,42 @@
 ---
-title: Button按钮
+title: Button
 ---
-# Button按钮
+
+import { Button, PlayBoard } from "haiku-ui"
+import * as React from "react"
+
+export const DownloadButton = () => {
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [text, setText] = React.useState("下载")
+
+  const handleDownload = () => {
+    setIsLoading(true)
+    setText("下载中")
+    setTimeout(() => {
+      setIsLoading(false)
+      setText("下载")
+    }, 2000)
+  }
+
+  return (
+    <Button
+      variant="primary"
+      color="info"
+      icon="ion:cloud-download-outline"
+      loading={isLoading}
+      onClick={handleDownload}
+    >
+      {text}
+    </Button>
+  )
+}
+
+# Button 按钮
+
 :::note
 按钮用于开始一个即时操作。
 :::
+
 ## 何时使用
 
 标记一个（或封装一组）操作命令，响应用户点击行为，触发相应的业务逻辑。
@@ -25,17 +57,265 @@ title: Button按钮
 - 👻 **幽灵**：用于背景色较复杂的场景，常见于首页/产品页等展示区域。
 - 🚫 **禁用**：行动点不可用时使用，一般需要配合文案解释原因。
 - 🔃 **加载中**：用于异步操作等待反馈，也可避免重复提交。
-## 代码演示
-import { Button } from 'haiku-ui'
 
-<div className="flex flex-wrap gap-4">
-    <Button className='bg-primary-900'>Haiku Design</Button>
-    <Button className='bg-primary-800'>Haiku Design</Button>
-    <Button className='bg-primary-700'>Haiku Design</Button>
-    <Button className='bg-primary-600'>Haiku Design</Button>
-    <Button className='bg-primary-500'>Haiku Design</Button>
-    <Button className='bg-primary-400'>Haiku Design</Button>
-    <Button className='bg-primary-300'>Haiku Design</Button>
-    <Button className='bg-primary-200'>Haiku Design</Button>
-    <Button className='bg-primary-100'>Haiku Design</Button>
+## 代码演示
+
+<div className='flex flex-col gap-8'>
+<PlayBoard
+  heading="按钮类型（variant）"
+  description="用于对比不同样式变体。"
+  code={`import { Button } from "haiku-ui"
+
+export default function Demo() {
+  return (
+    <div className="flex flex-wrap gap-4">
+      <Button variant="primary">Primary</Button>
+      <Button variant="default">Default</Button>
+      <Button variant="dashed">Dashed</Button>
+      <Button variant="filled">Filled</Button>
+      <Button variant="text">Text</Button>
+      <Button variant="link">Link</Button>
+    </div>
+  )
+}`}
+>
+  <div className="flex flex-wrap gap-4">
+    <Button variant="primary">Primary Button</Button>
+    <Button variant="default">Default Button</Button>
+    <Button variant="dashed">Dashed Button</Button>
+    <Button variant="filled">Filled Button</Button>
+    <Button variant="text">Text Button</Button>
+    <Button variant="link">Link Button</Button>
+  </div>
+</PlayBoard>
+
+<PlayBoard
+  heading="组合矩阵（color 和 variant）"
+  description="按颜色与样式变体排列，快速检查组合效果。"
+  code={`import { Button } from "haiku-ui"
+
+export default function Demo() {
+  const variants = [
+    { label: "Solid", variant: "primary" },
+    { label: "Outlined", variant: "default" },
+    { label: "Dashed", variant: "dashed" },
+    { label: "Filled", variant: "filled" },
+    { label: "Text", variant: "text" },
+    { label: "Link", variant: "link" },
+  ] as const
+
+const colors = ["default", "primary", "danger", "info", "success", "warning"] as const
+
+return (
+<div className="flex flex-col gap-2">
+{colors.map((color) => (
+<div key={color} className="flex flex-wrap gap-2">
+{variants.map(({ label, variant }) => (
+<Button key={variant} size="sm" variant={variant} color={color}>
+{label}
+</Button>
+))}
+</div>
+))}
+</div>
+)
+}`}
+
+>
+
+  <div className="flex flex-col gap-2">
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" variant="primary" color="default">Solid</Button>
+      <Button size="sm" variant="default" color="default">Outlined</Button>
+      <Button size="sm" variant="dashed" color="default">Dashed</Button>
+      <Button size="sm" variant="filled" color="default">Filled</Button>
+      <Button size="sm" variant="text" color="default">Text</Button>
+      <Button size="sm" variant="link" color="default">Link</Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" variant="primary" color="primary">Solid</Button>
+      <Button size="sm" variant="default" color="primary">Outlined</Button>
+      <Button size="sm" variant="dashed" color="primary">Dashed</Button>
+      <Button size="sm" variant="filled" color="primary">Filled</Button>
+      <Button size="sm" variant="text" color="primary">Text</Button>
+      <Button size="sm" variant="link" color="primary">Link</Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" variant="primary" color="danger">Solid</Button>
+      <Button size="sm" variant="default" color="danger">Outlined</Button>
+      <Button size="sm" variant="dashed" color="danger">Dashed</Button>
+      <Button size="sm" variant="filled" color="danger">Filled</Button>
+      <Button size="sm" variant="text" color="danger">Text</Button>
+      <Button size="sm" variant="link" color="danger">Link</Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" variant="primary" color="info">Solid</Button>
+      <Button size="sm" variant="default" color="info">Outlined</Button>
+      <Button size="sm" variant="dashed" color="info">Dashed</Button>
+      <Button size="sm" variant="filled" color="info">Filled</Button>
+      <Button size="sm" variant="text" color="info">Text</Button>
+      <Button size="sm" variant="link" color="info">Link</Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" variant="primary" color="success">Solid</Button>
+      <Button size="sm" variant="default" color="success">Outlined</Button>
+      <Button size="sm" variant="dashed" color="success">Dashed</Button>
+      <Button size="sm" variant="filled" color="success">Filled</Button>
+      <Button size="sm" variant="text" color="success">Text</Button>
+      <Button size="sm" variant="link" color="success">Link</Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" variant="primary" color="warning">Solid</Button>
+      <Button size="sm" variant="default" color="warning">Outlined</Button>
+      <Button size="sm" variant="dashed" color="warning">Dashed</Button>
+      <Button size="sm" variant="filled" color="warning">Filled</Button>
+      <Button size="sm" variant="text" color="warning">Text</Button>
+      <Button size="sm" variant="link" color="warning">Link</Button>
+    </div>
+  </div>
+</PlayBoard>
+
+
+<PlayBoard
+  heading="图标按钮"
+  description=""
+  code={`  <div className="flex flex-col flex-wrap gap-4">
+    <div className="flex flex-wrap gap-2">
+        <Button variant="primary" color='primary'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+        </Button>
+            <Button variant="default" color='primary'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+        </Button>
+        <Button variant="filled" color='primary'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+        </Button>
+        <Button variant="dashed" color='primary'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+        </Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+        <Button variant="primary" color='default'>
+            <Icon icon="famicons:logo-github" width="16" height="16" />
+            探索趋势
+        </Button>
+
+        <Button variant="primary" color='primary'>
+            <Icon icon="ion:search" width="16" height="16" />
+            搜索
+        </Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+        <Button variant="primary" color='info'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+            Haiku Design
+        </Button>
+
+        <Button variant="default" color='info'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+            Haiku Design
+        </Button>
+
+        <Button variant="filled" color='info'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+            Haiku Design
+        </Button>
+
+        <Button variant="dashed" color='info'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+            Haiku Design
+        </Button>
+
+        <Button variant="text" color='info'>
+            <Icon icon="streamline-logos:iq-logo-2" width="16" height="16" />
+            Haiku Design
+        </Button>
+    </div>
+
+  </div>`}
+>
+  <div className="flex flex-col flex-wrap gap-4">
+    <div className="flex flex-wrap gap-2">
+        <Button variant="primary" color='primary' shape='square' icon="streamline-logos:iq-logo-2">
+        </Button>
+            <Button variant="default" color='primary' shape='rounded' icon="streamline-logos:iq-logo-2">
+        </Button>
+        <Button variant="filled" color='primary' shape='default' icon="streamline-logos:iq-logo-2">
+        </Button>
+        <Button variant="dashed" color='primary' icon="streamline-logos:iq-logo-2">
+        </Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+        <Button variant="primary" color='default' icon="famicons:logo-github">
+            探索趋势
+        </Button>
+
+        <Button variant="primary" color='primary' icon="ion:search">
+            搜索
+        </Button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+        <Button variant="primary" color='info' shape='default' icon="streamline-logos:iq-logo-2">
+            Haiku Design
+        </Button>
+
+        <Button variant="default" color='info' icon="streamline-logos:iq-logo-2">
+            Haiku Design
+        </Button>
+
+        <Button variant="filled" color='info' icon="streamline-logos:iq-logo-2">
+            Haiku Design
+        </Button>
+
+        <Button variant="dashed" color='info' icon="streamline-logos:iq-logo-2">
+            Haiku Design
+        </Button>
+
+        <Button variant="text" color='info' icon="streamline-logos:iq-logo-2">
+            Haiku Design
+        </Button>
+    </div>
+  </div>
+</PlayBoard>
+
+<PlayBoard
+  heading="按钮状态（disable / loading）"
+  description="给按钮设置 disable 或 loading 时，自动启用对应状态样式。"
+  code={`
+  <div className="flex flex-col flex-wrap gap-4">
+    <div className="flex flex-wrap gap-2">
+        <Button variant="primary" color='default'>
+            Default
+        </Button>
+        <Button variant="primary" color='default' disable>
+            Disabled
+        </Button>
+        <Button variant="primary" color='default' loading>
+            Loading
+        </Button>
+    </div>
+  </div>
+</PlayBoard>`}
+>
+  <div className="flex flex-col flex-wrap gap-4">
+    <div className="flex flex-wrap gap-2">
+      <Button variant="primary" color="default">
+        Default
+      </Button>
+      <Button variant="primary" color="default" disabled>
+        Disabled
+      </Button>
+      <Button variant="primary" color="default" loading>
+        Loading
+      </Button>
+    </div>
+
+    <div className="flex flex-wrap gap-2">
+        <DownloadButton />
+    </div>
+  </div>
+
+  
+</PlayBoard>
+
 </div>
