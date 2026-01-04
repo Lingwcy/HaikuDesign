@@ -13,8 +13,19 @@
     --color-primary-200: rgb(244 216 204);
     --color-primary-100: rgb(248 236 230);
 
+    --color-default: oklch(0% 0 0);
+    --color-default-foreground: oklch(94.912% 0.00011 271.152);
+    --color-danger: oklch(0.627 0.201 29.234);
+    --color-danger-foreground:  oklch(62.827% 0.20104 29.226 / 0.356);
+    --color-info: oklch(0.538 0.2 264.583);
+    --color-info-foreground: oklch(0.873 0.128 264.583);
+    --color-success: oklch(0.628 0.973 142.5);
+    --color-success-foreground: oklch(0.873 0.128 142.5);
+    --color-warning: oklch(0.75 0.18 90);
+    --color-warning-foreground: oklch(0.873 0.128 90);
 
-
+    --color-destructive: oklch(0.704 0.191 22.216);
+    --color-destructive-foreground: oklch(0.58 0.22 27);
     --color-primary-foreground: oklch(98.5% 0 0);
 
     --color-muted: oklch(96% 0 0);
@@ -28,6 +39,27 @@
 @utility haiku-focus-ring {
   outline: 2px solid color-mix(in oklab, var(--color-primary) 45%, transparent);
   outline-offset: 2px;
+}
+
+@layer base {
+  @keyframes haiku-bubble-cursor-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes haiku-bubble-fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
 }
 
 

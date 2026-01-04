@@ -3,15 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "rspress build",
-    "dev": "rspress dev",
-    "preview": "rspress preview"
+    "build": "pnpm --filter haiku-ui build && rspress build",
+    "dev": "pnpm --filter haiku-ui build && rspress dev",
+    "preview": "pnpm --filter haiku-ui build && rspress preview"
   },
   "dependencies": {
     "haiku-ui": "workspace:*",
     "rspress": "^1.40.2"
   },
   "devDependencies": {
+    "@iconify/react": "^6.0.2",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^18.11.17",
     "autoprefixer": "^10.4.23",
