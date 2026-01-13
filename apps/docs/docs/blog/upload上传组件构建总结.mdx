@@ -1,0 +1,11 @@
+---
+title: Upload上传组件构建总结
+---
+# Upload上传组件构建总结
+> **整体设计思路**为 `Upload` 组件作为根容器维护状态与副作用，根据传入的type来渲染不同样式的子上传组件（`ButtonUpload.tsx、DraggerUpload.tsx、ImageUpload.tsx`），最后在子组件中通过渲染 `UploadTrigger` 组件实现统一的上传触发逻辑。
+
+## 主要功能点总结
+Upload组件被设计为支持多种上传样式和拥有良好的用户体感。
+
+## 设计思路
+

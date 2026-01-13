@@ -8,25 +8,15 @@ import * as React from "react"
 export const uploadAction = "http://localhost:5000/api/upload"
 
 export function UploadProgressDemo({ type }) {
-  const [progress, setProgress] = React.useState(0)
-  const [status, setStatus] = React.useState("空闲")
-
   return (
     <div className="flex flex-wrap flex-col gap-2">
       <div className="flex gap-2 items-center">
         <Upload
           type={type}
           action={uploadAction}
-          onProgress={(value) => {
-            setProgress(value)
-            setStatus("上传中")
-          }}
           variant="default"
-          onSuccess={() => setStatus("成功")}
-          onError={() => setStatus("错误")}
         />
       </div>
-      <div className="text-xs text-default">状态: {status} · 进度: {progress}%</div>
     </div>
   )
 }

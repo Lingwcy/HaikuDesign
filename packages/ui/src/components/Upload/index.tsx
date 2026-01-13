@@ -16,6 +16,7 @@ import { uploadFile } from "./utils";
 import ButtonUpload from "./components/ButtonUpload";
 import DraggerUpload from "./components/DraggerUpload";
 import ImageUpload from "./components/ImageUpload";
+import { cn } from "../../lib/utils";
 
 
 interface UploadProps extends UploadVariantProps {
@@ -23,6 +24,7 @@ interface UploadProps extends UploadVariantProps {
     action?: string;
     method?: FileRequestOptions["method"];
     headers?: FileRequestOptions["header"];
+    disabled?: boolean;
     onProgress?: (
         progress: number,
         event: ProgressEvent<EventTarget>,
@@ -41,6 +43,7 @@ function Upload({
     action,
     method = "post",
     headers,
+    disabled = false,
     onProgress,
     onSuccess,
     onError,
@@ -53,6 +56,13 @@ function Upload({
     const inputId = useId();
     const abortRef = useRef<AbortController | null>(null);
     const cancelRef = useRef(false);
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const isDisabled = disabled || status === "uploading" || status === "success"; // 上传中或上传成功时禁用上传操作
+
+    className = cn(
+        className,
+        isDisabled && "cursor-not-allowed opacity-80",
+    );
 
     const uploadFiles = async (selectedFiles: File[]) => {
         if (!action || selectedFiles.length === 0) {
@@ -170,6 +180,16 @@ function Upload({
         setProgress(0);
     };
 
+    const handleReset = () => {
+        setFiles([]);
+        setStatus("idle");
+        setProgress(0);
+        setPreviewUrl(null);
+        if (inputRef.current) {
+            inputRef.current.value = "";
+        }
+    }
+
     // 用于 files 变化时，如果此时子组件是image且上传资源为image/，启用图片预览。
     useEffect(() => {
         if (type !== "image") {
@@ -191,6 +211,8 @@ function Upload({
         };
     }, [files, type]);
 
+
+
     // 统一将样式、进度、状态信息向下传递给 UploadTrigger 和 样式子组件。
     const triggerProps: UploadTriggerConfig = {
         inputId,
@@ -201,6 +223,7 @@ function Upload({
         status,
         progress,
         onCancel: handleCancel,
+        onReset: handleReset,
     };
 
     return (
@@ -221,7 +244,9 @@ function Upload({
 
             <input
                 className="opacity-0 absolute"
+                disabled={isDisabled}
                 id={inputId}
+                ref={inputRef}
                 type="file"
                 multiple
                 accept={type === "image" ? "image/*" : undefined}

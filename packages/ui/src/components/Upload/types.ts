@@ -23,17 +23,6 @@ const uploadTriggerVariants = cva(
             variant: {
                 default:
                     "border border-default bg-white text-default hover:bg-default-foreground/10",
-                primary:
-                    "border border-primary-300 bg-primary-900 text-primary-foreground hover:bg-primary-800",
-                info: "border border-info-300 bg-info text-info-foreground hover:bg-info/90",
-                success:
-                    "border border-success-300 bg-success text-success-foreground hover:bg-success/90",
-                warning:
-                    "border border-warning-300 bg-warning text-warning-foreground hover:bg-warning/90",
-                danger:
-                    "border border-danger-foreground bg-danger text-white hover:bg-danger/90",
-                ghost:
-                    "border border-transparent bg-transparent text-default hover:bg-default-foreground/10",
                 dashed:
                     "border-2 border-dashed border-default bg-white text-default hover:bg-default-foreground/10",
             },
@@ -79,6 +68,7 @@ interface UploadTriggerConfig {
     status: UploadStatus;
     progress: number;
     onCancel?: () => void;
+    onReset?: () => void
 }
 
 export {

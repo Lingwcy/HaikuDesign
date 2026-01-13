@@ -11,6 +11,7 @@ export default function ButtonUpload({
     status,
     progress,
     onCancel,
+    onReset,
 }: UploadTriggerConfig) {
     const isUploading = status === "uploading";
     const widthClass = isUploading ? "w-[154px]" : "w-[130px]";
@@ -34,6 +35,26 @@ export default function ButtonUpload({
             "点击上传文件"
         );
     
+    const reloadButton = status === "success" && onReset ? (
+        <button
+            type="button"
+            aria-label="Reset upload"
+            className="ml-1 inline-flex items-center"
+            onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onReset();
+            }}
+        >
+            <Icon
+                icon="bx:reset"
+                width="18"
+                height="18"
+                className="cursor-pointer"
+            />
+        </button>
+    ) : null;
+    
     const cancelButton = status === "uploading" && onCancel ? (
         <button
             type="button"
@@ -47,8 +68,8 @@ export default function ButtonUpload({
         >
             <Icon
                 icon="fluent-emoji-flat:stop-sign"
-                width="24"
-                height="24"
+                width="18"
+                height="18"
                 className="cursor-pointer"
             />
         </button>
@@ -82,6 +103,7 @@ export default function ButtonUpload({
                 {statusIcon}
                 {labelContent}
                 {cancelButton}
+                {reloadButton}
             </span>
         </UploadTrigger>
     );
