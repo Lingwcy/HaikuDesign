@@ -1,0 +1,99 @@
+﻿---
+title: Upload
+---
+
+import { Upload, PlayBoard } from "haiku-ui"
+import * as React from "react"
+
+export const uploadAction = "http://localhost:5000/api/upload"
+
+export function UploadProgressDemo({ type }) {
+  const [progress, setProgress] = React.useState(0)
+  const [status, setStatus] = React.useState("空闲")
+
+  return (
+    <div className="flex flex-wrap flex-col gap-2">
+      <div className="flex gap-2 items-center">
+        <Upload
+          type={type}
+          action={uploadAction}
+          onProgress={(value) => {
+            setProgress(value)
+            setStatus("上传中")
+          }}
+          variant="default"
+          onSuccess={() => setStatus("成功")}
+          onError={() => setStatus("错误")}
+        />
+      </div>
+      <div className="text-xs text-default">状态: {status} · 进度: {progress}%</div>
+    </div>
+  )
+}
+
+<div className="flex flex-col gap-8">
+  <PlayBoard heading="图像上传" description="测试" code="">
+    <div className="flex flex-wrap flex-col gap-1">
+      <div className="flex gap-10 items-center">
+        <Upload shape="square" type="image"></Upload>
+        <Upload shape="square" variant="dashed" type="image"></Upload>
+        <Upload variant="dashed" type="image"></Upload>
+      </div>
+
+      <div className="flex gap-2 items-center"></div>
+
+      <div className="flex gap-2 items-center"></div>
+    </div>
+  </PlayBoard>
+
+  <PlayBoard heading="按钮上传" description="测试" code="">
+    <div className="flex flex-wrap flex-col gap-1">
+      <div className="flex gap-10 items-center">
+        <Upload shape="square" type="button"></Upload>
+        <Upload shape="square" variant="dashed" type="button"></Upload>
+        <Upload variant="dashed" type="button"></Upload>
+      </div>
+
+      <div className="flex gap-2 items-center"></div>
+
+      <div className="flex gap-2 items-center"></div>
+    </div>
+  </PlayBoard>
+
+  <PlayBoard
+    heading="上传进度"
+    description="需要配置 action 才会触发进度"
+    code='<Upload type="button" action="http://localhost:5000/api/upload"  />'
+  >
+    <UploadProgressDemo type="button" />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="图像上传进度"
+    description="图像模式也支持进度"
+    code='<Upload type="image" action="http://localhost:5000/api/upload"  />'
+  >
+    <UploadProgressDemo type="image" />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="拖拽上传进度"
+    description="拖拽模式也支持进度"
+    code='<Upload type="dragger" action="http://localhost:5000/api/upload"  />'
+  >
+    <UploadProgressDemo type="dragger" />
+  </PlayBoard>
+
+  <PlayBoard heading="拖拽上传" description="测试" code="">
+    <div className="flex flex-wrap flex-col gap-1">
+      <div className="flex gap-10 items-center">
+        <Upload shape="square" type="dragger"></Upload>
+        <Upload shape="square" variant="dashed" type="dragger"></Upload>
+      </div>
+
+      <div className="flex gap-2 items-center"></div>
+
+      <div className="flex gap-2 items-center"></div>
+    </div>
+  </PlayBoard>
+</div>

@@ -252,11 +252,22 @@ interface ButtonOwnProps {
   color?: "default" | "primary" | "danger" | "info" | "success" | "warning";
   loading?: boolean;
   icon?: React.ReactNode | string;
+  disabled?: boolean;
 }
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof buttonVariants> &
-  ButtonOwnProps
+type ButtonBaseProps = VariantProps<typeof buttonVariants> & ButtonOwnProps
+
+type ButtonAsButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  ButtonBaseProps & {
+    as?: "button";
+  }
+
+type ButtonAsLabelProps = React.LabelHTMLAttributes<HTMLLabelElement> &
+  ButtonBaseProps & {
+    as?: "label";
+  }
+
+export type ButtonProps = ButtonAsButtonProps | ButtonAsLabelProps
 
 
 function Button({
@@ -269,9 +280,53 @@ function Button({
   disabled,
   children,
   icon,
+  as = "button",
   ...props
 }: ButtonProps) {
   const resolvedColor = color ?? (variant === "primary" ? "primary" : "default")
+  const isDisabled = disabled || loading
+  const isLabel = as === "label" || "htmlFor" in props
+  const baseClassName = cn(
+    buttonVariants({ color: resolvedColor, variant, size, shape, className }),
+    loading && "disabled:cursor-wait opacity-70",
+    isDisabled && "cursor-not-allowed opacity-50"
+  )
+
+  if (isLabel) {
+    const { disabled: _disabled, ...labelProps } =
+      props as React.LabelHTMLAttributes<HTMLLabelElement> & {
+        disabled?: boolean;
+      }
+    return (
+      <label
+        data-slot="button"
+        data-variant={variant}
+        data-size={size}
+        data-shape={shape}
+        data-color={resolvedColor}
+        data-loading={loading ? "" : undefined}
+        aria-busy={loading || undefined}
+        aria-disabled={isDisabled || undefined}
+        className={baseClassName}
+        {...labelProps}
+      >
+        {loading ? (
+          <span
+            aria-hidden="true"
+            className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+          />
+        ) : icon ? (
+          typeof icon === "string" ? (
+            <Icon icon={icon} width="16" height="16" />
+          ) : (
+            icon
+          )
+        ) : null}
+        {children}
+      </label>
+    )
+  }
+
   return (
     <button
       data-slot="button"
@@ -281,12 +336,9 @@ function Button({
       data-color={resolvedColor}
       data-loading={loading ? "" : undefined}
       aria-busy={loading || undefined}
-      disabled={disabled || loading}
-      className={cn(
-        buttonVariants({ color: resolvedColor, variant, size, shape, className }),
-        loading && "disabled:cursor-wait opacity-70"
-      )}
-      {...props}
+      disabled={isDisabled}
+      className={baseClassName}
+      {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
     >
       {loading ? (
         <span

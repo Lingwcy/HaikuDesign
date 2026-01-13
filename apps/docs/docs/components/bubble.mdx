@@ -51,6 +51,12 @@ export const LoadingDemo = () => {
         avatar={<Avatar icon="mdi:robot" size="sm" />}
         header={<span>Assistant</span>}
         loading={loading}
+        loadingRender={() => (
+          <div className="flex items-center gap-2 text-zinc-500">
+            <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <span>正在生成...</span>
+          </div>
+        )}
         content={"这段内容在 loading=true 时不会渲染。"}
         footer={<span className="text-zinc-500">loading={String(loading)}</span>}
       />
@@ -83,7 +89,7 @@ export const SlotAndContentRenderDemo = () => {
         )}
         extra={
           <Button size="sm" variant="text">
-            extra 
+            ...
           </Button>
         }
         content={"我会把文本里的 Haiku 高亮出来。"}
@@ -112,31 +118,38 @@ export const SlotAndContentRenderDemo = () => {
 
 export const TypingEventsDemo = () => {
   const [content, setContent] = React.useState("")
+  const [keepPrefix, setKeepPrefix] = React.useState(true)
   const [typingCount, setTypingCount] = React.useState(0)
   const [completeCount, setCompleteCount] = React.useState(0)
 
-  const makeText = () =>
-    `随机内容：${Math.random().toString(16).slice(2)}\n这行用于测试换行与空白符渲染。`
+  const sharedPrefix =
+    "共同前缀：这段文字在 A/B 中相同，用来观察 keepPrefix 的效果。"
+
+  const load = (label) => {
+    setTypingCount(0)
+    setCompleteCount(0)
+    setContent(
+      `${sharedPrefix}\n当前选择：${label} - ${Math.random().toString(16).slice(2)}\n第二行用于测试换行。`,
+    )
+  }
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant="primary"
-          color="primary"
-          onClick={() => {
-            setTypingCount(0)
-            setCompleteCount(0)
-            setContent(makeText())
-          }}
-        >
-          触发吐字
+        <Button variant="primary" color="primary" onClick={() => load("A")}>
+          加载 A
+        </Button>
+        <Button variant="primary" color="info" onClick={() => load("B")}>
+          加载 B
         </Button>
         <Button variant="default" onClick={() => setContent("")}>
           清空
         </Button>
+        <Button variant="text" onClick={() => setKeepPrefix((v) => !v)}>
+          keepPrefix: {String(keepPrefix)}
+        </Button>
         <span className="text-xs text-zinc-500">
-          计数: {typingCount} / 完成: {completeCount}
+          onTyping: {typingCount} / onTypingComplete: {completeCount}
         </span>
       </div>
 
@@ -144,8 +157,8 @@ export const TypingEventsDemo = () => {
         avatar={<Avatar icon="mdi:robot" size="sm" />}
         header={<span>Assistant</span>}
         content={content}
-        typing={{ effect: "typing", interval: 40, step: [1, 3], keepPrefix: true }}
-        typingCursor="▍"
+        typing={{ effect: "fade-in", interval: 40, step: [1, 3], keepPrefix }}
+        typingCursor="|"
         onTyping={() => setTypingCount((c) => c + 1)}
         onTypingComplete={() => setCompleteCount((c) => c + 1)}
       />
@@ -225,11 +238,14 @@ export const StreamTypingDemo = () => {
 
 # Bubble 对话气泡
 
+:::note
+`Bubble` 支持：
 - 外观：`placement`（左右）、`variant/shape`（样式与圆角）
 - 结构：`avatar/header/footer/extra` 四个插槽（ReactNode 或函数）
 - 渲染：`contentRender`（自定义渲染 content）
 - 状态：`loading/loadingRender`
 - 交互：`typing/typingCursor` + `streaming` + `onTyping/onTypingComplete`
+:::
 
 <div className="flex flex-col gap-8">
   <PlayBoard
@@ -297,8 +313,8 @@ export default function Demo() {
   </PlayBoard>
 
   <PlayBoard
-    heading="吐字回调 + 自定义光标（typingCursor）"
-    description="typing 仅对 string 生效；onTyping/onTypingComplete 可用于统计或联动 UI。"
+    heading="keepPrefix 的视觉差异（A/B 切换）"
+    description="先加载 A，再加载 B：keepPrefix=true 会直接保留共同前缀，false 会从头重新吐字。"
     code={`// 见本页 TypingEventsDemo（省略实现代码）`}
   >
     <TypingEventsDemo />

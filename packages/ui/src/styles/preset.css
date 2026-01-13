@@ -41,6 +41,17 @@
   outline-offset: 2px;
 }
 
+/*
+  Upload子组件的闪光动画
+*/
+@utility haiku-upload-shine {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.12), transparent),
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: haiku-upload-shine 1.2s linear infinite;
+  will-change: transform;
+}
+
 @layer base {
   @keyframes haiku-bubble-cursor-blink {
     0%,
@@ -58,6 +69,15 @@
     }
     100% {
       opacity: 1;
+    }
+  }
+
+  @keyframes haiku-upload-shine {
+    0% {
+      transform: translateX(-120%);
+    }
+    100% {
+      transform: translateX(120%);
     }
   }
 }

@@ -46,7 +46,7 @@ export function TypingContent({
         config.effect === "fade-in" && !chunk.done ? (
           <span
             key={chunk.id}
-            className="inline animate-[haiku-bubble-fade-in_0.8s_linear]"
+            className="inline animate-[haiku-bubble-fade-in_0.1s_linear]"
           >
             {chunk.text}
           </span>

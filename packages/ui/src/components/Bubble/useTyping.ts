@@ -71,13 +71,14 @@ export function useTyping({
 }) {
   const [chunks, setChunks] = React.useState<BubbleTypingChunk[]>([])
 
-  const rafId = React.useRef(-1)
-  const currentTaskId = React.useRef(1)
+  const rafId = React.useRef(-1) // 保存最近一次requestFrame返回的id，用于停止frame循环
+  const currentTaskId = React.useRef(1) //保存“当前吐字任务”的版本号
   const animatingRef = React.useRef(false) //表示是否正在动画中
   const renderedRef = React.useRef("") // 当前已经渲染出来的完整文本（拼接结果）
-  const streamingRef = React.useRef(streaming)
+  const streamingRef = React.useRef(streaming) //是否还在流式
   streamingRef.current = streaming
 
+  // 检查合并typing配置
   const mergedConfig = React.useMemo<Required<BubbleTypingConfig>>(() => {
     const base: Required<BubbleTypingConfig> = {
       effect: "fade-in",
@@ -120,6 +121,7 @@ export function useTyping({
     return { effect, interval, step, keepPrefix }
   }, [typing])
 
+  // 获取当前的typing配置
   const typingSourceRef = React.useRef({
     content,
     interval: mergedConfig.interval,
@@ -147,13 +149,16 @@ export function useTyping({
         ? getLongestCommonPrefix([typingSourceRef.current.content, renderedRef.current])
         : ""
 
+      // 放置一个起始块！
       setChunks(
         renderedRef.current
           ? [{ text: renderedRef.current, id: getUid(), taskId, done: true }]
           : [],
       )
-
+      // 定义每一个tick我们具体要做些什么
       const tick = () => {
+        // taskId是副作用主动传入，如果不相等：
+        // 1.这轮打字动画已经结束了
         if (taskId !== currentTaskId.current) return
 
         //计算当前时间戳。 优先用 performance.now()（更精细），否则退化用 Date.now()。
