@@ -157,7 +157,7 @@ export const TypingEventsDemo = () => {
         avatar={<Avatar icon="mdi:robot" size="sm" />}
         header={<span>Assistant</span>}
         content={content}
-        typing={{ effect: "fade-in", interval: 40, step: [1, 3], keepPrefix }}
+        typing={{ effect: "fade-in", interval: 100, step: [1, 3], keepPrefix }}
         typingCursor="|"
         onTyping={() => setTypingCount((c) => c + 1)}
         onTypingComplete={() => setCompleteCount((c) => c + 1)}

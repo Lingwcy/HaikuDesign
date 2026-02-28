@@ -3,13 +3,19 @@ import {
     type DragEvent,
 } from "react";
 import UploadTrigger from "./UploadTrigger";
+
+/** 拖拽式上传组件 Props */
 interface DraggerUploadProps extends UploadTriggerConfig {
-    isDragging: boolean;
-    onDragOver: (event: DragEvent<HTMLLabelElement>) => void;
-    onDragLeave: (event: DragEvent<HTMLLabelElement>) => void;
-    onDrop: (event: DragEvent<HTMLLabelElement>) => void;
+    isDragging: boolean;                              // 是否正在拖拽
+    onDragOver: (event: DragEvent<HTMLLabelElement>) => void;   // 拖拽悬停回调
+    onDragLeave: (event: DragEvent<HTMLLabelElement>) => void;   // 拖拽离开回调
+    onDrop: (event: DragEvent<HTMLLabelElement>) => void;        // 拖拽放下回调
 }
 
+/**
+ * 拖拽式上传组件
+ * 支持拖拽文件到上传区域，显示拖拽状态和上传进度
+ */
 export default function DraggerUpload({
     inputId,
     isDragging,

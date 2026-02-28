@@ -1,16 +1,16 @@
 import * as React from "react"
 
-export type BubbleTypingEffect = "typing" | "fade-in"
-
+//定义打字配置对象的结构（效果、步长、间隔、是否保留前缀）。
 export type BubbleTypingConfig = {
-  effect?: BubbleTypingEffect
+  effect?: "typing" | "fade-in"
   step?: number | [number, number]
   interval?: number
   keepPrefix?: boolean
 }
-
+// typing 参数既可布尔也可配置对象
 export type BubbleTypingInput = boolean | BubbleTypingConfig
 
+//定义渲染分片的数据结构（id、文本、是否完成、任务 id）。
 export type BubbleTypingChunk = {
   id: string
   text: string
@@ -18,6 +18,8 @@ export type BubbleTypingChunk = {
   taskId: number
 }
 
+//计算一组字符串的最长公共前缀，用于“保留已有前缀”。
+//这样如果 content 发生更新但前缀相同（比如流式追加、或内容替换但开头一致），就保留这段已打出的部分，避免从头重打。
 function getLongestCommonPrefix(strings: string[]) {
   if (!strings.length) return ""
   return strings.reduce((prefix, current) => {
@@ -45,9 +47,15 @@ function requestFrame(callback: FrameRequestCallback) {
   if (typeof requestAnimationFrame !== "undefined") {
     return requestAnimationFrame(callback)
   }
+  /**
+   * 这条分支只在“没有 requestAnimationFrame”的环境下会走到，也就是：
+    非浏览器环境（SSR/Node.js/测试环境）
+    或浏览器被裁剪/禁用 RAF 的场景
+    此时用 setTimeout 模拟一帧（约 16ms），返回它的 id，并把 Date.now() 作为时间戳传给回调，保证后续逻辑仍能工作。
+   */
   return setTimeout(() => callback(Date.now()), 16) as unknown as number
 }
-
+//停止当前 rafId 对应的下一次 tick 执行，从而中断动画循环.
 function cancelFrame(id: number) {
   if (typeof cancelAnimationFrame !== "undefined") {
     cancelAnimationFrame(id)
@@ -73,12 +81,14 @@ export function useTyping({
 
   const rafId = React.useRef(-1) // 保存最近一次requestFrame返回的id，用于停止frame循环
   const currentTaskId = React.useRef(1) //保存“当前吐字任务”的版本号
-  const animatingRef = React.useRef(false) //表示是否正在动画中
+  const animatingRef = React.useRef(false) //在 useEffect 里它被用来决定是否启动 execute：只有 false 才会启动；一旦被设为 true，就避免重复重启动画。
   const renderedRef = React.useRef("") // 当前已经渲染出来的完整文本（拼接结果）
   const streamingRef = React.useRef(streaming) //是否还在流式
   streamingRef.current = streaming
 
   // 检查合并typing配置
+  // 把外部 typing 配置和默认配置合并，同时做强校验”，只在 typing 变化时重新计算
+  // 这里用 Required<BubbleTypingConfig> 的目的就是“把可选字段变成必选”，让 TypeScript 认为最终配置一定完整
   const mergedConfig = React.useMemo<Required<BubbleTypingConfig>>(() => {
     const base: Required<BubbleTypingConfig> = {
       effect: "fade-in",
@@ -86,7 +96,7 @@ export function useTyping({
       step: 6,
       keepPrefix: true,
     }
-
+    //如果 typing 是布尔值（true/false），直接用默认配置（等价于“使用默认打字配置”）
     if (typing === false) return base
     if (typing === true) return base
 
@@ -157,8 +167,10 @@ export function useTyping({
       )
       // 定义每一个tick我们具体要做些什么
       const tick = () => {
-        // taskId是副作用主动传入，如果不相等：
-        // 1.这轮打字动画已经结束了
+        // tick 是异步循环里的闭包，taskId 是启动时的快照。
+        // 当有这些情况发生时，会递增 currentTaskId.current
+        // 动画完成时：currentTaskId.current += 1
+        // 中途被打断重启时：execute((currentTaskId.current += 1))
         if (taskId !== currentTaskId.current) return
 
         //计算当前时间戳。 优先用 performance.now()（更精细），否则退化用 Date.now()。
@@ -181,6 +193,8 @@ export function useTyping({
         const nextText = fullContent.slice(currentLen, currentLen + resolvedStep) //从完整内容中切出“下一段要追加的文本”。
 
         if (!nextText) { //如果切出来为空，说明“已经追上当前 fullContent 的末尾”。
+          //用 streamingRef.current 是为了让不重启动画的情况下，tick 每次都能读到最新的流式状态
+          //如果不用ref那么闭包内部只是拿到streaming的第一次快照
           if (streamingRef.current) { //但如果外部还在流式（后面还会继续追加 content）
             rafId.current = requestFrame(tick) //不要宣布完成，继续等下一帧（等外部把 content 变长）。
             return
@@ -211,10 +225,8 @@ export function useTyping({
           }),
         )
 
-        if (!animatingRef.current) {
-          animatingRef.current = true
-        }
 
+        animatingRef.current = true
         lastFrameTime = now //更新上次吐字时间戳（用于下一轮 interval 节流）。
         rafId.current = requestFrame(tick) //安排下一帧继续吐字。
         onTyping?.(renderedRef.current, fullContent)
@@ -226,16 +238,22 @@ export function useTyping({
   )
 
   React.useEffect(() => {
-    if (!content) return reset()
+    // content 为空（""、null/undefined 等被判 falsy）时进入。场景：刚初始化或外部清空内容。
+    if (!content) return reset() 
+    // 新的 content 与已渲染文本完全一致时进入。场景：重复设置相同内容、或流式更新没有新增字符。
     if (content === renderedRef.current) return
 
+    //正在动画中，但新 content 不是已渲染文本的前缀时进入。
+    //场景：外部content被替换/截断/回退（比如从“Hello wor”变成“Hi”或“Hello!”）。
     if (animatingRef.current && !content.startsWith(renderedRef.current)) {
+      // 取消当前帧、递增任务id重新打字
       cancelFrame(rafId.current)
       animatingRef.current = false
       rafId.current = requestFrame(() => execute((currentTaskId.current += 1)))
       return
     }
 
+    //初次收到内容
     if (!animatingRef.current) {
       execute(currentTaskId.current)
     }

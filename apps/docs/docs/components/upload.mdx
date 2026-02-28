@@ -1,4 +1,4 @@
-﻿---
+---
 title: Upload
 ---
 
@@ -7,83 +7,255 @@ import * as React from "react"
 
 export const uploadAction = "http://localhost:5000/api/upload"
 
-export function UploadProgressDemo({ type }) {
-  return (
-    <div className="flex flex-wrap flex-col gap-2">
-      <div className="flex gap-2 items-center">
-        <Upload
-          type={type}
-          action={uploadAction}
-          variant="default"
-        />
-      </div>
-    </div>
-  )
+## 基础用法
+
+```tsx
+<Upload action="/api/upload" />
+```
+
+## 上传模式
+
+支持三种上传模式：`button`（按钮）、`image`（图片）、`dragger`（拖拽）
+
+<PlayBoard
+  heading="按钮模式"
+  description="普通按钮样式的上传组件"
+  code='<Upload mode="button" action="/api/upload" />'
+>
+  <Upload mode="button" action={uploadAction} />
+</PlayBoard>
+
+<PlayBoard
+  heading="图片模式"
+  description="显示为图片缩略图样式"
+  code='<Upload mode="image" action="/api/upload" />'
+>
+  <Upload mode="image" action={uploadAction} />
+</PlayBoard>
+
+<PlayBoard
+  heading="拖拽模式"
+  description="支持拖拽文件到上传区域"
+  code='<Upload mode="dragger" action="/api/upload" />'
+>
+  <Upload mode="dragger" action={uploadAction} />
+</PlayBoard>
+
+## 样式变体
+
+<PlayBoard
+  heading="变体"
+  description="支持 default 和 dashed 两种变体"
+  code={`<Upload mode="button" variant="default" action="/api/upload" />
+<Upload mode="button" variant="dashed" action="/api/upload" />`}
+>
+  <div className="flex gap-4 items-center">
+    <Upload mode="button" variant="default" action={uploadAction} />
+    <Upload mode="button" variant="dashed" action={uploadAction} />
+  </div>
+</PlayBoard>
+
+## 尺寸
+
+<PlayBoard
+  heading="尺寸"
+  description="支持 sm、md、lg 三种尺寸"
+  code={`<Upload mode="button" size="sm" action="/api/upload" />
+<Upload mode="button" size="md" action="/api/upload" />
+<Upload mode="button" size="lg" action="/api/upload" />`}
+>
+  <div className="flex gap-4 items-center">
+    <Upload mode="button" size="sm" action={uploadAction} />
+    <Upload mode="button" size="md" action={uploadAction} />
+    <Upload mode="button" size="lg" action={uploadAction} />
+  </div>
+</PlayBoard>
+
+## 形状
+
+<PlayBoard
+  heading="形状"
+  description="支持 rounded（圆角）和 square（方形）"
+  code={`<Upload mode="button" shape="rounded" action="/api/upload" />
+<Upload mode="button" shape="square" action="/api/upload" />`}
+>
+  <div className="flex gap-4 items-center">
+    <Upload mode="button" shape="rounded" action={uploadAction} />
+    <Upload mode="button" shape="square" action={uploadAction} />
+  </div>
+</PlayBoard>
+
+## 文件验证
+
+<PlayBoard
+  heading="文件类型限制"
+  description="使用 accept 属性限制允许的文件类型"
+  code={`<Upload
+  mode="button"
+  accept="image/*"
+  action="/api/upload"
+/>`}
+>
+  <Upload mode="button" accept="image/*" action={uploadAction} />
+</PlayBoard>
+
+<PlayBoard
+  heading="文件大小限制"
+  description="使用 maxSize 属性限制最大文件大小（字节）"
+  code={`<Upload
+  mode="button"
+  maxSize={1024 * 1024} // 1MB
+  action="/api/upload"
+/>`}
+>
+  <Upload mode="button" maxSize={1024 * 1024} action={uploadAction} />
+</PlayBoard>
+
+<PlayBoard
+  heading="文件数量限制"
+  description="使用 maxCount 属性限制最大文件数"
+  code={`<Upload
+  mode="button"
+  maxCount={3}
+  action="/api/upload"
+/>`}
+>
+  <Upload mode="button" maxCount={3} action={uploadAction} />
+</PlayBoard>
+
+## 手动上传模式
+
+<PlayBoard
+  heading="手动上传"
+  description="设置 autoUpload={false} 可以手动触发上传"
+  code={`<Upload
+  mode="button"
+  autoUpload={false}
+  onChange={(files) => console.log(files)}
+  action="/api/upload"
+/>`}
+>
+  <Upload
+    mode="button"
+    autoUpload={false}
+    action={uploadAction}
+  />
+</PlayBoard>
+
+## 显示文件列表
+
+<PlayBoard
+  heading="文件列表"
+  description="默认显示文件列表，可通过 showFileList={false} 隐藏"
+  code={`<Upload
+  mode="button"
+  showFileList={true}
+  action="/api/upload"
+/>`}
+>
+  <Upload mode="button" showFileList action={uploadAction} />
+</PlayBoard>
+
+## 目录上传
+
+<PlayBoard
+  heading="目录上传"
+  description="设置 directory={true} 允许用户选择整个目录"
+  code={`<Upload
+  mode="button"
+  directory={true}
+  action="/api/upload"
+/>`}
+>
+  <Upload mode="button" directory action={uploadAction} />
+</PlayBoard>
+
+## 回调函数
+
+<PlayBoard
+  heading="上传回调"
+  description="支持多种回调函数监听上传状态"
+  code={`<Upload
+  mode="button"
+  action="/api/upload"
+  onChange={(files) => console.log('变化:', files)}
+  onProgress={(progress) => console.log('进度:', progress)}
+  onSuccess={(response, file) => console.log('成功:', response)}
+  onError={(error, file) => console.log('错误:', error)}
+/>`}
+>
+  <Upload
+    mode="button"
+    action={uploadAction}
+    onProgress={(progress) => console.log('进度:', progress)}
+  />
+</PlayBoard>
+
+## API 参考
+
+### UploadConfig
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `mode` | `'button' \| 'image' \| 'dragger'` | `'button'` | 上传模式 |
+| `autoUpload` | `boolean` | `true` | 选择文件后是否自动上传 |
+| `showFileList` | `boolean` | `true` | 是否显示文件列表 |
+| `directory` | `boolean` | `false` | 是否允许上传目录 |
+| `accept` | `string` | - | 允许的文件类型 |
+| `maxSize` | `number` | - | 最大文件大小（字节） |
+| `minSize` | `number` | - | 最小文件大小（字节） |
+| `maxCount` | `number` | - | 最大文件数 |
+| `variant` | `'default' \| 'dashed'` | `'default'` | 样式变体 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 尺寸 |
+| `shape` | `'rounded' \| 'square'` | `'rounded'` | 形状 |
+| `action` | `string` | **必填** | 上传地址 URL |
+| `method` | `'get' \| 'post' \| 'put'` | `'post'` | HTTP 请求方法 |
+| `headers` | `Record<string, string>` | - | 请求头 |
+| `data` | `Record<string, unknown>` | - | 自定义请求体数据 |
+| `name` | `string` | `'file'` | 上传字段名 |
+
+### 回调函数
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `onChange` | `(files: UploadFile[]) => void` | 文件列表变化回调 |
+| `onProgress` | `(progress: number, file: File) => void` | 上传进度回调 |
+| `onSuccess` | `(response: string, file: File) => void` | 上传成功回调 |
+| `onError` | `(error: UploadError, file: File) => void` | 上传失败回调 |
+| `onComplete` | `(files: UploadFile[]) => void` | 全部上传完成回调 |
+
+### UploadFile
+
+```typescript
+interface UploadFile {
+  id: string;           // 唯一标识
+  file: File;          // 文件对象
+  status: UploadStatus; // 状态
+  progress: number;    // 进度 0-100
+  response?: string;   // 服务器响应
+  error?: UploadError; // 错误信息
 }
+```
 
-<div className="flex flex-col gap-8">
-  <PlayBoard heading="图像上传" description="测试" code="">
-    <div className="flex flex-wrap flex-col gap-1">
-      <div className="flex gap-10 items-center">
-        <Upload shape="square" type="image"></Upload>
-        <Upload shape="square" variant="dashed" type="image"></Upload>
-        <Upload variant="dashed" type="image"></Upload>
-      </div>
+### UploadError
 
-      <div className="flex gap-2 items-center"></div>
+```typescript
+interface UploadError {
+  type: UploadErrorType;
+  message: string;
+  file?: File;
+  originalError?: Error;
+}
+```
 
-      <div className="flex gap-2 items-center"></div>
-    </div>
-  </PlayBoard>
+### UploadErrorType
 
-  <PlayBoard heading="按钮上传" description="测试" code="">
-    <div className="flex flex-wrap flex-col gap-1">
-      <div className="flex gap-10 items-center">
-        <Upload shape="square" type="button"></Upload>
-        <Upload shape="square" variant="dashed" type="button"></Upload>
-        <Upload variant="dashed" type="button"></Upload>
-      </div>
-
-      <div className="flex gap-2 items-center"></div>
-
-      <div className="flex gap-2 items-center"></div>
-    </div>
-  </PlayBoard>
-
-  <PlayBoard
-    heading="上传进度"
-    description="需要配置 action 才会触发进度"
-    code='<Upload type="button" action="http://localhost:5000/api/upload"  />'
-  >
-    <UploadProgressDemo type="button" />
-  </PlayBoard>
-
-  <PlayBoard
-    heading="图像上传进度"
-    description="图像模式也支持进度"
-    code='<Upload type="image" action="http://localhost:5000/api/upload"  />'
-  >
-    <UploadProgressDemo type="image" />
-  </PlayBoard>
-
-  <PlayBoard
-    heading="拖拽上传进度"
-    description="拖拽模式也支持进度"
-    code='<Upload type="dragger" action="http://localhost:5000/api/upload"  />'
-  >
-    <UploadProgressDemo type="dragger" />
-  </PlayBoard>
-
-  <PlayBoard heading="拖拽上传" description="测试" code="">
-    <div className="flex flex-wrap flex-col gap-1">
-      <div className="flex gap-10 items-center">
-        <Upload shape="square" type="dragger"></Upload>
-        <Upload shape="square" variant="dashed" type="dragger"></Upload>
-      </div>
-
-      <div className="flex gap-2 items-center"></div>
-
-      <div className="flex gap-2 items-center"></div>
-    </div>
-  </PlayBoard>
-</div>
+| 类型 | 说明 |
+|------|------|
+| `'FILE_TYPE_MISMATCH'` | 文件类型不匹配 |
+| `'FILE_SIZE_EXCEEDED'` | 文件大小超限 |
+| `'FILE_COUNT_EXCEEDED'` | 文件数量超限 |
+| `'NETWORK_ERROR'` | 网络错误 |
+| `'SERVER_ERROR'` | 服务器错误 |
+| `'ABORT_ERROR'` | 取消上传 |
+| `'UNKNOWN_ERROR'` | 未知错误 |

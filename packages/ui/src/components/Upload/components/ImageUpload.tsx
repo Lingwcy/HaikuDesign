@@ -1,10 +1,15 @@
 import UploadTrigger from "./UploadTrigger";
 import { type UploadTriggerConfig } from "../types";
 
+/** 图片上传组件 Props */
 interface ImageUploadProps extends UploadTriggerConfig {
-    previewUrl?: string | null;
+    previewUrl?: string | null; // 图片预览 URL
 }
 
+/**
+ * 图片上传组件
+ * 显示为图片缩略图样式，支持图片预览和上传进度覆盖
+ */
 export default function ImageUpload({
     inputId,
     previewUrl,

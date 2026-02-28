@@ -2,6 +2,11 @@ import { type UploadTriggerConfig } from "../types";
 import UploadTrigger from "./UploadTrigger";
 import { Icon } from "@iconify/react";
 import { cn } from "../../../lib/utils";
+
+/**
+ * 按钮式上传组件
+ * 显示为按钮样式，支持上传中/成功/失败/空闲四种状态
+ */
 export default function ButtonUpload({
     inputId,
     variant,

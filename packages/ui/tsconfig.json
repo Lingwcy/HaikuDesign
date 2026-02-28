@@ -3,6 +3,7 @@
         "jsx": "react-jsx",
         "module": "esnext",
         "moduleResolution": "bundler",
+        "skipLibCheck": true
     },
     "include": ["src"]
 }

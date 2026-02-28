@@ -1,5 +1,11 @@
 import { FileRequestOptions } from "./types";
 
+/**
+ * 上传文件到服务器
+ * 使用 XMLHttpRequest 实现，支持进度回调和取消功能
+ * @param options - 文件请求选项
+ * @returns Promise<string> - 服务器响应文本
+ */
 const uploadFile = ({
     action,
     file,
@@ -7,6 +13,7 @@ const uploadFile = ({
     header,
     onProgress,
     signal,
+    formData: providedFormData,
 }: FileRequestOptions) =>
     new Promise<string>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -47,8 +54,11 @@ const uploadFile = ({
         }
         signal?.addEventListener("abort", handleAbort);
 
-        const formData = new FormData();
-        formData.append("file", file);
+        // 使用传入的 formData，或创建一个新的
+        const formData = providedFormData || new FormData();
+        if (!providedFormData && file) {
+            formData.append("file", file);
+        }
         xhr.send(formData);
     });
 

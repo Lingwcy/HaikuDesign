@@ -9,7 +9,6 @@ export type TypingContentProps = {
   streaming: boolean
   className?: string
   cursor?: string
-  cursorBlinkClassName?: string
   onTyping?: (renderedContent: string, currentContent: string) => void
   onTypingComplete?: (content: string) => void
 }
@@ -20,10 +19,10 @@ export function TypingContent({
   streaming,
   className,
   cursor = "|",
-  cursorBlinkClassName = "animate-[haiku-bubble-cursor-blink_0.8s_linear_infinite]",
   onTyping,
   onTypingComplete,
 }: TypingContentProps) {
+
   const { chunks, animating, config } = useTyping({
     streaming,
     content,
@@ -32,7 +31,7 @@ export function TypingContent({
     onTypingComplete,
   })
 
-  const effect: BubbleTypingConfig["effect"] = config.effect
+  const effect = config.effect
   const isTypingEffect = typing !== true && effect === "typing"
 
   return (
@@ -57,7 +56,7 @@ export function TypingContent({
       {isTypingEffect && animating ? (
         <span
           aria-hidden="true"
-          className={cn("ml-1 select-none font-black", cursorBlinkClassName)}
+          className={cn("ml-1 select-none font-black", "animate-[haiku-bubble-cursor-blink_0.8s_linear_infinite]")}
         >
           {cursor}
         </span>

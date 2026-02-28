@@ -9,7 +9,6 @@ export type {
 } from "./bubble"
 export type {
   BubbleTypingConfig,
-  BubbleTypingEffect,
   BubbleTypingInput,
 } from "./useTyping"
 

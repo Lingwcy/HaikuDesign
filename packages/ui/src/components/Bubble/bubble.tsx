@@ -7,7 +7,7 @@ import { TypingContent } from "./TypingContent"
 export type BubblePlacement = "start" | "end"
 export type BubbleVariant = "filled" | "outlined" | "shadow" | "borderless"
 export type BubbleShape = "default" | "round" | "corner"
-
+ 
 export type BubbleInfo = {
   key?: string | number
   status?: string

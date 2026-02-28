@@ -1,73 +1,297 @@
-﻿import {
+/**
+ * 上传组件 - 
+ *
+ * 使用统一的 UploadConfig 接口，支持:
+ * - 三种上传模式：button（按钮）、image（图片）、dragger（拖拽）
+ * - 文件验证：accept、maxSize、maxCount
+ * - 手动/自动上传模式
+ * - 增强的错误处理
+ *
+ * @example
+ * ```tsx
+ * // 基础用法
+ * <Upload action="/api/upload" />
+ *
+ * // 图片上传
+ * <Upload mode="image" action="/api/upload" accept="image/*" maxSize={5 * 1024 * 1024} />
+ *
+ * // 拖拽上传
+ * <Upload mode="dragger" action="/api/upload" maxCount={5} />
+ *
+ * // 手动上传模式
+ * <Upload mode="button" action="/api/upload" autoUpload={false} onChange={handleChange} />
+ *   <button onClick={triggerUpload}>上传</button>
+ * </Upload>
+ * ```
+ */
+import {
     useEffect,
     useId,
     useRef,
     useState,
+    useCallback,
     type ChangeEvent,
     type DragEvent,
 } from "react";
 import {
-    type FileRequestOptions,
+    type UploadConfig,
+    type UploadFile,
     type UploadStatus,
-    type UploadVariantProps,
-    UploadTriggerConfig
+    type UploadError,
+    type UploadMode,
+    type UploadVariant,
+    type UploadSize,
+    type UploadShape,
+    type UploadErrorType,
+    type UploadAccept,
+    type UploadAcceptType,
+    UploadTriggerConfig,
 } from "./types";
 import { uploadFile } from "./utils";
 import ButtonUpload from "./components/ButtonUpload";
 import DraggerUpload from "./components/DraggerUpload";
 import ImageUpload from "./components/ImageUpload";
+import { FileList } from "./components/FileList";
 import { cn } from "../../lib/utils";
 
+// 默认配置
+const DEFAULT_OPTIONS: Partial<UploadConfig> = {
+    mode: "button",
+    autoUpload: true,
+    showFileList: true,
+    variant: "default",
+    size: "md",
+    shape: "rounded",
+    method: "post",
+    name: "file",
+};
 
-interface UploadProps extends UploadVariantProps {
-    className?: string;
-    action?: string;
-    method?: FileRequestOptions["method"];
-    headers?: FileRequestOptions["header"];
-    disabled?: boolean;
-    onProgress?: (
-        progress: number,
-        event: ProgressEvent<EventTarget>,
-        file: File
-    ) => void;
-    onSuccess?: (responseText: string, file: File) => void;
-    onError?: (event: ProgressEvent<EventTarget>, file: File) => void;
-}
+/** 创建上传错误 */
+const createUploadError = (
+    type: UploadErrorType,
+    message: string,
+    file?: File,
+    originalError?: Error
+): UploadError => ({
+    type,
+    message,
+    file,
+    originalError,
+});
 
-function Upload({
-    type = "button",
-    variant,
-    size,
-    shape,
-    className,
-    action,
-    method = "post",
-    headers,
-    disabled = false,
-    onProgress,
-    onSuccess,
-    onError,
-}: UploadProps) {
-    const [files, setFiles] = useState<File[]>([]);
+/**
+ * 生成唯一文件 ID
+ */
+const generateFileId = () => Math.random().toString(36).substring(2, 11);
+
+/**
+ * 上传组件
+ */
+function Upload(config: UploadConfig) {
+    // 合并配置
+    const options: Required<UploadConfig> = {
+        ...DEFAULT_OPTIONS,
+        ...config,
+    } as Required<UploadConfig>;
+
+    // 解构配置
+    const {
+        mode,
+        autoUpload,
+        showFileList,
+        directory,
+        accept,
+        maxSize,
+        minSize,
+        maxCount,
+        variant,
+        size,
+        shape,
+        action,
+        method,
+        headers,
+        data,
+        name,
+        onChange,
+        onProgress,
+        onSuccess,
+        onError,
+        onComplete,
+    } = options;
+
+    // 文件列表状态
+    const [files, setFiles] = useState<UploadFile[]>([]);
+    // 拖拽状态
     const [isDragging, setIsDragging] = useState(false);
+    // 图片预览 URL
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    // 全局上传状态
     const [status, setStatus] = useState<UploadStatus>("idle");
+    // 全局进度
     const [progress, setProgress] = useState(0);
+
+    // Refs
     const inputId = useId();
     const abortRef = useRef<AbortController | null>(null);
     const cancelRef = useRef(false);
     const inputRef = useRef<HTMLInputElement | null>(null);
-    const isDisabled = disabled || status === "uploading" || status === "success"; // 上传中或上传成功时禁用上传操作
 
-    className = cn(
-        className,
-        isDisabled && "cursor-not-allowed opacity-80",
-    );
+    // 计算当前状态
+    const isDisabled = status === "uploading";
+    const isUploading = status === "uploading";
 
-    const uploadFiles = async (selectedFiles: File[]) => {
-        if (!action || selectedFiles.length === 0) {
+    // 触发文件变化回调
+    const notifyChange = useCallback((newFiles: UploadFile[]) => {
+        onChange?.(newFiles);
+    }, [onChange]);
+
+    // 验证单个文件
+    const validateFile = useCallback((file: File): UploadError | null => {
+        // 文件大小验证
+        if (maxSize && file.size > maxSize) {
+            return createUploadError(
+                "FILE_SIZE_EXCEEDED",
+                `文件大小不能超过 ${Math.round(maxSize / 1024 / 1024)}MB`,
+                file
+            );
+        }
+        if (minSize && file.size < minSize) {
+            return createUploadError(
+                "FILE_SIZE_EXCEEDED",
+                `文件大小不能小于 ${Math.round(minSize / 1024)}KB`,
+                file
+            );
+        }
+        return null;
+    }, [maxSize, minSize]);
+
+    // 验证文件列表
+    const validateFiles = useCallback((newFiles: File[]): { valid: File[]; errors: UploadError[] } => {
+        const valid: File[] = [];
+        const errors: UploadError[] = [];
+
+        // 文件数量验证
+        if (maxCount && newFiles.length > maxCount) {
+            const error = createUploadError(
+                "FILE_COUNT_EXCEEDED",
+                `最多只能上传 ${maxCount} 个文件`
+            );
+            errors.push(error);
+        }
+
+        // 逐个验证
+        for (const file of newFiles) {
+            const error = validateFile(file);
+            if (error) {
+                errors.push(error);
+            } else {
+                valid.push(file);
+            }
+        }
+
+        return { valid, errors };
+    }, [maxCount, validateFile]);
+
+    // 上传单个文件
+    const uploadSingleFile = async (
+        fileItem: UploadFile,
+        totalBytes: number,
+        uploadedBytes: number
+    ): Promise<UploadFile> => {
+        const { file } = fileItem;
+
+        // 创建 AbortController
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        try {
+            // 构建 FormData
+            const formData = new FormData();
+            formData.append(name, file);
+            // 添加额外数据
+            if (data) {
+                Object.entries(data).forEach(([key, value]) => {
+                    formData.append(key, String(value));
+                });
+            }
+
+            const responseText = await uploadFile({
+                action,
+                method,
+                header: headers,
+                signal: controller.signal,
+                formData,
+                onProgress: (event) => {
+                    if (!event.lengthComputable || file.size === 0) {
+                        return;
+                    }
+                    // 计算当前文件的进度
+                    const percent = Math.min(
+                        100,
+                        Math.round((event.loaded / file.size) * 100)
+                    );
+                    // 更新全局进度（所有文件的累计）
+                    const currentTotalBytes = uploadedBytes + event.loaded;
+                    setProgress(
+                        Math.round((currentTotalBytes / totalBytes) * 100)
+                    );
+                    onProgress?.(percent, file);
+
+                    // 更新当前文件的进度
+                    setFiles((prev) =>
+                        prev.map((f) =>
+                            f.id === fileItem.id
+                                ? { ...f, progress: percent }
+                                : f
+                        )
+                    );
+                },
+            });
+
+            // 上传成功
+            const updatedFile: UploadFile = {
+                ...fileItem,
+                status: "success",
+                progress: 100,
+                response: responseText,
+            };
+
+            onSuccess?.(responseText, file);
+            return updatedFile;
+        } catch (event) {
+            // 判断是否为取消
+            const isAbort =
+                cancelRef.current ||
+                (event as DOMException)?.name === "AbortError";
+
+            if (isAbort) {
+                return { ...fileItem, status: "idle", progress: 0 };
+            }
+
+            // 上传失败
+            const error = createUploadError(
+                "NETWORK_ERROR",
+                event instanceof Error ? event.message : "上传失败",
+                file,
+                event instanceof Error ? event : undefined
+            );
+
+            onError?.(error, file);
+            return { ...fileItem, status: "error", error };
+        }
+    };
+
+    // 上传文件核心逻辑
+    const uploadFiles = useCallback(async (filesToUpload: UploadFile[]) => {
+        // 无 action 或无文件，直接返回
+        if (!action || filesToUpload.length === 0) {
             setStatus("idle");
             setProgress(0);
+            return;
+        }
+
+        // 非自动上传模式，不触发上传
+        if (!autoUpload) {
             return;
         }
 
@@ -78,88 +302,116 @@ function Upload({
         setStatus("uploading");
         setProgress(0);
 
-        const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+        // 计算总大小
+        const totalBytes = filesToUpload.reduce((sum, f) => sum + f.file.size, 0);
         let uploadedBytes = 0;
 
-        for (const file of selectedFiles) {
+        const uploadedFiles: UploadFile[] = [];
+
+        for (const fileItem of filesToUpload) {
+            // 检查取消
             if (cancelRef.current) {
                 setStatus("idle");
                 setProgress(0);
                 return;
             }
 
-            const controller = new AbortController();
-            abortRef.current = controller;
-            try {
-                const responseText = await uploadFile({
-                    action,
-                    file,
-                    method,
-                    header: headers,
-                    signal: abortRef.current.signal,
-                    onProgress: (event) => {
-                        if (!event.lengthComputable || totalBytes === 0) {
-                            return;
-                        }
-                        const currentBytes = uploadedBytes + event.loaded;
-                        const percent = Math.min(
-                            100,
-                            Math.round((currentBytes / totalBytes) * 100)
-                        );
-                        setProgress(percent);
-                        onProgress?.(percent, event, file);
-                    },
-                });
-                uploadedBytes += file.size;
+            // 更新为上传中状态
+            setFiles((prev) =>
+                prev.map((f) =>
+                    f.id === fileItem.id ? { ...f, status: "uploading" as const } : f
+                )
+            );
+
+            const result = await uploadSingleFile(fileItem, totalBytes, uploadedBytes);
+            uploadedFiles.push(result);
+
+            // 更新文件列表中的状态（只需要更新 status 和 response，progress 已在 onProgress 中更新）
+            setFiles((prev) =>
+                prev.map((f) =>
+                    f.id === fileItem.id
+                        ? { ...f, status: result.status, response: result.response }
+                        : f
+                )
+            );
+
+            if (result.status === "success") {
+                uploadedBytes += fileItem.file.size;
                 setProgress(
                     totalBytes === 0
                         ? 100
                         : Math.round((uploadedBytes / totalBytes) * 100)
                 );
-                onSuccess?.(responseText, file);
-            } catch (event) {
-                const isAbort =
-                    cancelRef.current ||
-                    (event as DOMException)?.name === "AbortError";
-                if (isAbort) {
-                    setStatus("idle");
-                    setProgress(0);
-                    return;
-                }
+            } else if (result.status === "error") {
+                // 如果有错误，停止上传
                 setStatus("error");
-                onError?.(event as ProgressEvent<EventTarget>, file);
                 return;
-            } finally {
-                abortRef.current = null;
             }
         }
 
+        // 全部成功
         setStatus("success");
         setProgress(100);
-    };
+        onComplete?.(uploadedFiles);
+    }, [action, autoUpload, headers, method, name, data, onComplete, onError, onProgress, onSuccess]);
 
-    const handleFiles = (fileList: FileList | File[]) => {
-        const nextFiles = Array.from(fileList);
-        setFiles(nextFiles);
-        void uploadFiles(nextFiles);
-    };
+    // 处理文件选择
+    const handleFiles = useCallback((fileList: FileList | File[]) => {
+        const newFiles = Array.from(fileList);
 
+        // 验证
+        const { valid, errors } = validateFiles(newFiles);
+
+        // 触发错误回调
+        errors.forEach((error) => {
+            onError?.(error, error.file!);
+        });
+
+        if (valid.length === 0) {
+            return;
+        }
+
+        // 创建文件项
+        const fileItems: UploadFile[] = valid.map((file) => ({
+            id: generateFileId(),
+            file,
+            status: "idle" as const,
+            progress: 0,
+        }));
+
+        // 更新文件列表
+        setFiles((prev) => {
+            const newFileList = [...prev, ...fileItems];
+            notifyChange(newFileList);
+            return newFileList;
+        });
+
+        // 触发上传
+        void uploadFiles(fileItems);
+    }, [validateFiles, notifyChange, uploadFiles, onError]);
+
+    // 处理输入变化
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
             handleFiles(event.target.files);
+            // 重置 input 以允许重复选择同一文件
+            event.target.value = "";
         }
     };
 
+    // 处理拖拽悬停
     const handleDragOver = (event: DragEvent<HTMLLabelElement>) => {
         event.preventDefault();
         setIsDragging(true);
     };
 
+    // 处理拖拽离开
     const handleDragLeave = (event: DragEvent<HTMLLabelElement>) => {
         event.preventDefault();
         setIsDragging(false);
     };
 
+    // 处理拖拽放下
     const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
         event.preventDefault();
         setIsDragging(false);
@@ -169,7 +421,8 @@ function Upload({
         }
     };
 
-    const handleCancel = () => {
+    // 处理取消
+    const handleCancel = useCallback(() => {
         if (status !== "uploading") {
             return;
         }
@@ -178,9 +431,11 @@ function Upload({
         abortRef.current = null;
         setStatus("idle");
         setProgress(0);
-    };
+        setFiles([]);
+    }, [status]);
 
-    const handleReset = () => {
+    // 处理重置
+    const handleReset = useCallback(() => {
         setFiles([]);
         setStatus("idle");
         setProgress(0);
@@ -188,16 +443,46 @@ function Upload({
         if (inputRef.current) {
             inputRef.current.value = "";
         }
-    }
+        notifyChange([]);
+    }, [notifyChange]);
 
-    // 用于 files 变化时，如果此时子组件是image且上传资源为image/，启用图片预览。
+    // 处理删除文件
+    const handleRemoveFile = useCallback((id: string) => {
+        setFiles((prev) => {
+            const newFiles = prev.filter((f) => f.id !== id);
+            notifyChange(newFiles);
+            return newFiles;
+        });
+    }, [notifyChange]);
+
+    // 处理取消单个文件上传
+    const handleCancelFile = useCallback((id: string) => {
+        // 找到对应的文件并标记为取消
+        setFiles((prev) =>
+            prev.map((f) =>
+                f.id === id ? { ...f, status: "idle" as const, progress: 0 } : f
+            )
+        );
+    }, []);
+
+    // 手动触发上传
+    const triggerUpload = useCallback(() => {
+        if (files.length > 0 && autoUpload === false) {
+            const pendingFiles = files.filter((f) => f.status === "idle");
+            if (pendingFiles.length > 0) {
+                uploadFiles(pendingFiles);
+            }
+        }
+    }, [files, autoUpload, uploadFiles]);
+
+    // 图片预览
     useEffect(() => {
-        if (type !== "image") {
+        if (mode !== "image") {
             setPreviewUrl(null);
             return;
         }
 
-        const file = files[0];
+        const file = files[0]?.file;
         if (!file || !file.type.startsWith("image/")) {
             setPreviewUrl(null);
             return;
@@ -209,30 +494,29 @@ function Upload({
         return () => {
             URL.revokeObjectURL(url);
         };
-    }, [files, type]);
+    }, [files, mode]);
 
-
-
-    // 统一将样式、进度、状态信息向下传递给 UploadTrigger 和 样式子组件。
+    // 构建 trigger props
     const triggerProps: UploadTriggerConfig = {
         inputId,
         variant,
         size,
         shape,
-        className,
+        className: cn(isDisabled && "cursor-not-allowed opacity-80"),
         status,
         progress,
         onCancel: handleCancel,
         onReset: handleReset,
     };
 
+    // 渲染
     return (
         <div>
-            {type === "button" && <ButtonUpload {...triggerProps} />}
-            {type === "image" && (
+            {mode === "button" && <ButtonUpload {...triggerProps} />}
+            {mode === "image" && (
                 <ImageUpload {...triggerProps} previewUrl={previewUrl} />
             )}
-            {type === "dragger" && (
+            {mode === "dragger" && (
                 <DraggerUpload
                     {...triggerProps}
                     isDragging={isDragging}
@@ -248,12 +532,23 @@ function Upload({
                 id={inputId}
                 ref={inputRef}
                 type="file"
-                multiple
-                accept={type === "image" ? "image/*" : undefined}
+                multiple={maxCount !== 1}
+                accept={accept}
+                // @ts-expect-error - webkitdirectory 是非标准但广泛支持的属性
+                webkitdirectory={directory ? "" : undefined}
                 onChange={handleInputChange}
+            />
+
+            {/* 文件列表 */}
+            <FileList
+                files={files}
+                show={showFileList}
+                onRemove={handleRemoveFile}
+                onCancel={handleCancelFile}
             />
         </div>
     );
 }
 
 export default Upload;
+export type { UploadConfig, UploadFile, UploadError, UploadErrorType, UploadAccept, UploadAcceptType };
