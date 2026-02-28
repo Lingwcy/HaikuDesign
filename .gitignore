@@ -32,6 +32,7 @@ es
 elasticsearch-*
 config/base.yaml
 /.vscode/
+/.claude/
 coverage
 yarn.lock
 package-lock.json
