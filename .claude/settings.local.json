@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm test:*)",
       "Bash(pnpm typecheck:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(git:*)"
     ]
   },
   "outputStyle": "Explanatory"

@@ -52,4 +52,5 @@ oss-artifacts.zip
 server/
 
 doc_build
-
+apps/backend/uploads/
+apps/backend/temp_chunks/
