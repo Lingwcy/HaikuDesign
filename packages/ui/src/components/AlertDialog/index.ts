@@ -1,4 +1,7 @@
 export { AlertDialog } from "./alertDialog"
 export { AlertDialogTrigger } from "./alertDialog"
 export { useAlertDialogContext } from "./alertDialog"
+export { AlertDialogPortal } from "./alertDialogPortal"
+export { AlertDialogOverlay } from "./alertDialogOverlay"
+export { AlertDialogContent } from "./alertDialogContent"
 export * from "./types"
