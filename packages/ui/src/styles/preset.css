@@ -1,4 +1,4 @@
-﻿@layer theme {
+@layer theme {
   /*
     Haiku UI design tokens (Tailwind v4).
   */
@@ -52,22 +52,6 @@
   will-change: transform;
 }
 
-@utility haiku-dialog-fade-in {
-  animation: haiku-dialog-fade-in 0.2s ease-out;
-}
-
-@utility haiku-dialog-fade-out {
-  animation: haiku-dialog-fade-out 0.2s ease-in;
-}
-
-@utility haiku-dialog-scale-in {
-  animation: haiku-dialog-scale-in 0.2s ease-out;
-}
-
-@utility haiku-dialog-scale-out {
-  animation: haiku-dialog-scale-out 0.2s ease-in;
-}
-
 @layer base {
   @keyframes haiku-bubble-cursor-blink {
     0%,
@@ -97,6 +81,7 @@
     }
   }
 
+  /* Dialog animations */
   @keyframes haiku-dialog-fade-in {
     0% {
       opacity: 0;
@@ -138,6 +123,59 @@
   }
 }
 
+/* AlertDialog animation classes */
+.haiku-dialog-enter {
+  animation: haiku-dialog-fade-in 0.2s ease-out, haiku-dialog-scale-in 0.2s ease-out;
+}
 
+.haiku-dialog-exit {
+  animation: haiku-dialog-fade-out 0.2s ease-in, haiku-dialog-scale-out 0.2s ease-in;
+}
 
-/* watch-test */
+/* shadcn style animations */
+@keyframes shadcn-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes shadcn-fade-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes shadcn-zoom-in {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes shadcn-zoom-out {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+}
+
+.shadcn-dialog-enter {
+  animation: shadcn-fade-in 0.2s ease-out, shadcn-zoom-in 0.2s ease-out;
+}
+
+.shadcn-dialog-exit {
+  animation: shadcn-fade-out 0.2s ease-in, shadcn-zoom-out 0.2s ease-in;
+}
+
+/* Overlay animations */
+@keyframes haiku-overlay-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes haiku-overlay-fade-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.haiku-overlay-enter {
+  animation: haiku-overlay-fade-in 0.2s ease-out;
+}
+
+.haiku-overlay-exit {
+  animation: haiku-overlay-fade-out 0.2s ease-in;
+}

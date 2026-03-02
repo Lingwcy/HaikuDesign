@@ -19,11 +19,9 @@ const contentVariants = {
   },
 }
 
-const shadcnAnimation = "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
-
 const contentBaseStyles = {
-  shadcn: "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg",
-  haiku: "fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] gap-3 rounded-xl border border-default bg-white p-5 shadow-xl duration-200 dark:bg-zinc-900",
+  shadcn: "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
+  haiku: "fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] gap-3 rounded-xl border border-default bg-white p-5 shadow-xl dark:bg-zinc-900",
 }
 
 export function AlertDialogContent({
@@ -31,55 +29,79 @@ export function AlertDialogContent({
   children,
   showClose = true,
   size = "md",
+  closeOnOverlayClick = true,
+  closeOnEscape = true,
   onEscapeKeyDown,
   onPointerDownOutside,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & {
   showClose?: boolean
   size?: AlertDialogSize
+  closeOnOverlayClick?: boolean
+  closeOnEscape?: boolean
   onEscapeKeyDown?: (event: KeyboardEvent) => void
   onPointerDownOutside?: (event: PointerEvent) => void
 }) {
   const { open, variant, onOpenChange } = useAlertDialogContext()
+  const contentRef = React.useRef<HTMLDivElement>(null)
+  const [animationClass, setAnimationClass] = React.useState("")
 
+  // Handle animation on open/close
   React.useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (open) {
-        onEscapeKeyDown?.(event)
-        if (!event.defaultPrevented) {
-          onOpenChange(false)
-        }
-      }
+    if (open) {
+      setAnimationClass(variant === "shadcn" ? "shadcn-dialog-enter" : "haiku-dialog-enter")
+    } else {
+      setAnimationClass(variant === "shadcn" ? "shadcn-dialog-exit" : "haiku-dialog-exit")
     }
+  }, [open, variant])
 
-    document.addEventListener("keydown", handleEscape)
-    return () => document.removeEventListener("keydown", handleEscape)
-  }, [open, onOpenChange, onEscapeKeyDown])
-
+  // Handle escape key
   React.useEffect(() => {
-    const handlePointerDownOutside = (event: PointerEvent) => {
-      onPointerDownOutside?.(event)
+    if (!open || !closeOnEscape) return
+
+    const handleEscape = (event: KeyboardEvent) => {
+      onEscapeKeyDown?.(event)
       if (!event.defaultPrevented) {
         onOpenChange(false)
       }
     }
 
-    if (open) {
-      document.addEventListener("pointerdown", handlePointerDownOutside)
-      return () => document.removeEventListener("pointerdown", handlePointerDownOutside)
-    }
-  }, [open, onOpenChange, onPointerDownOutside])
+    document.addEventListener("keydown", handleEscape)
+    return () => document.removeEventListener("keydown", handleEscape)
+  }, [open, closeOnEscape, onOpenChange, onEscapeKeyDown])
 
-  if (!open) return null
+  // Handle click outside
+  React.useEffect(() => {
+    if (!open || !closeOnOverlayClick) return
+
+    const handlePointerDownOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+      // Check if click is inside the dialog content
+      if (contentRef.current?.contains(target)) {
+        return
+      }
+
+      onPointerDownOutside?.(event as unknown as PointerEvent)
+      if (!event.defaultPrevented) {
+        onOpenChange(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDownOutside)
+    return () => document.removeEventListener("mousedown", handlePointerDownOutside)
+  }, [open, closeOnOverlayClick, onOpenChange, onPointerDownOutside])
+
+  if (!open && !animationClass.includes("exit")) return null
 
   return (
     <AlertDialogPortal>
-      <AlertDialogOverlay />
+      <AlertDialogOverlay className={variant === "shadcn" ? "" : "haiku-overlay-enter"} />
       <div
+        ref={contentRef}
         className={cn(
           contentBaseStyles[variant],
           contentVariants[variant][size],
-          variant === "shadcn" && shadcnAnimation,
+          animationClass,
           className
         )}
         role="alertdialog"
@@ -87,10 +109,10 @@ export function AlertDialogContent({
         {...props}
       >
         {children}
-        {showClose && variant === "haiku" && (
+        {showClose && (
           <button
             onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
             aria-label="Close"
           >
             <Icon icon="lucide:x" className="h-4 w-4" />
