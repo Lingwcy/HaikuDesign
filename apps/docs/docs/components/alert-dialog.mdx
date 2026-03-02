@@ -20,46 +20,46 @@ import * as React from "react"
 export const HaikuStyleDemo = () => {
   const [open, setOpen] = React.useState(false)
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger>
-        <Button onClick={() => setOpen(true)}>删除文件</Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent closeOnOverlayClick={false}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除</AlertDialogTitle>
-          <AlertDialogDescription>
-            此操作不可撤销，确定要删除该文件吗？
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction color="danger">确认删除</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <div className="flex flex-col gap-4">
+      <Button onClick={() => setOpen(true)}>删除文件</Button>
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent closeOnOverlayClick={false}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作不可撤销，确定要删除该文件吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction color="danger">确认删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }
 
 export const ShadcnStyleDemo = () => {
   const [open, setOpen] = React.useState(false)
   return (
-    <AlertDialog open={open} onOpenChange={setOpen} variant="shadcn">
-      <AlertDialogTrigger>
-        <Button variant="default" onClick={() => setOpen(true)}>Show Dialog</Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent closeOnOverlayClick={false}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your account.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <div className="flex flex-col gap-4">
+      <Button variant="default" onClick={() => setOpen(true)}>Show Dialog</Button>
+      <AlertDialog open={open} onOpenChange={setOpen} variant="shadcn">
+        <AlertDialogContent closeOnOverlayClick={false}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }
 
@@ -82,26 +82,28 @@ export const ShadcnStyleDemo = () => {
     heading="Haiku 风格"
     description="与 HaikuDesign 设计系统一致的样式"
     code={`import { AlertDialog, Button } from "haiku-react-ui"
+import { useState } from "react"
 
 export default function Demo() {
+  const [open, setOpen] = useState(false)
   return (
-    <AlertDialog>
-      <AlertDialogTrigger>
-        <Button>删除文件</Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除</AlertDialogTitle>
-          <AlertDialogDescription>
-            此操作不可撤销，确定要删除该文件吗？
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
-          <AlertDialogAction color="danger">确认删除</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <Button onClick={() => setOpen(true)}>删除文件</Button>
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent closeOnOverlayClick={false}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作不可撤销，确定要删除该文件吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction color="danger">确认删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }`}
   >
@@ -112,26 +114,28 @@ export default function Demo() {
     heading="shadcn/ui 风格"
     description="现代简洁风格"
     code={`import { AlertDialog, Button } from "haiku-react-ui"
+import { useState } from "react"
 
 export default function Demo() {
+  const [open, setOpen] = useState(false)
   return (
-    <AlertDialog variant="shadcn">
-      <AlertDialogTrigger>
-        <Button variant="default">Show Dialog</Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your account.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <Button variant="default" onClick={() => setOpen(true)}>Show Dialog</Button>
+      <AlertDialog open={open} onOpenChange={setOpen} variant="shadcn">
+        <AlertDialogContent closeOnOverlayClick={false}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }`}
   >
@@ -151,18 +155,14 @@ export default function Demo() {
 | variant | `"shadcn" \| "haiku"` | `"haiku"` | 样式变体 |
 | children | `ReactNode` | - | 子组件 |
 
-### AlertDialogTrigger
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| children | `ReactNode` | - | 触发器内容 |
-
 ### AlertDialogContent
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | showClose | `boolean` | `true` | 是否显示关闭按钮 |
 | size | `"sm" \| "md" \| "lg"` | `"md"` | 对话框尺寸 |
+| closeOnOverlayClick | `boolean` | `true` | 点击遮罩是否关闭 |
+| closeOnEscape | `boolean` | `true` | 按 ESC 是否关闭 |
 
 ### AlertDialogHeader
 
