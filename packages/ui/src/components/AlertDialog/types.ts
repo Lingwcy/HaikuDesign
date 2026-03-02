@@ -11,9 +11,9 @@ export interface AlertDialogProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
 }
 
-export interface AlertDialogTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface AlertDialogTriggerProps extends Omit<React.HTMLAttributes<HTMLButtonElement>, "children"> {
   asChild?: boolean
-  children?: React.ReactNode
+  children?: React.ReactNode | ((props: { open: boolean }) => React.ReactNode)
 }
 
 export interface AlertDialogPortalProps {

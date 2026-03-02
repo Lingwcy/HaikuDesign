@@ -2,7 +2,7 @@ import * as React from "react"
 import { Button } from "../Button"
 import { useAlertDialogContext } from "./alertDialog"
 
-interface AlertDialogActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+interface AlertDialogActionProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "color"> {}
 
 export function AlertDialogAction({ className, onClick, ...props }: AlertDialogActionProps) {
   const { variant, onOpenChange } = useAlertDialogContext()

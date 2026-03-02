@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cn } from "../../lib/utils"
-import type { AlertDialogProps, AlertDialogVariant } from "./types"
+import type { AlertDialogProps, AlertDialogTriggerProps, AlertDialogVariant } from "./types"
 
 interface AlertDialogContextValue {
   open: boolean
@@ -47,7 +47,7 @@ export function AlertDialog({
   )
 }
 
-export function AlertDialogTrigger({ children }: { children: React.ReactNode }) {
+export function AlertDialogTrigger({ children }: AlertDialogTriggerProps) {
   const { onOpenChange } = useAlertDialogContext()
 
   return (

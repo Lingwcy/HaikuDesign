@@ -2,7 +2,7 @@ import * as React from "react"
 import { Button } from "../Button"
 import { useAlertDialogContext } from "./alertDialog"
 
-interface AlertDialogCancelProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+interface AlertDialogCancelProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "color" | "variant"> {}
 
 export function AlertDialogCancel({ className, onClick, ...props }: AlertDialogCancelProps) {
   const { variant, onOpenChange } = useAlertDialogContext()
@@ -14,7 +14,7 @@ export function AlertDialogCancel({ className, onClick, ...props }: AlertDialogC
 
   if (variant === "shadcn") {
     return (
-      <Button variant="outline" className={className} onClick={handleClick} {...props} />
+      <Button variant="text" className={className} onClick={handleClick} {...props} />
     )
   }
 
