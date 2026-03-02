@@ -1,3 +1,5 @@
+export { AlertDialogAction } from "./alertDialogAction"
+export { AlertDialogCancel } from "./alertDialogCancel"
 export { AlertDialogHeader } from "./alertDialogHeader"
 export { AlertDialogFooter } from "./alertDialogFooter"
 export { AlertDialogTitle } from "./alertDialogTitle"
