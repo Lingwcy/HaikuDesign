@@ -44,16 +44,6 @@ export function AlertDialogContent({
 }) {
   const { open, variant, onOpenChange } = useAlertDialogContext()
   const contentRef = React.useRef<HTMLDivElement>(null)
-  const [animationClass, setAnimationClass] = React.useState("")
-
-  // Handle animation on open/close
-  React.useEffect(() => {
-    if (open) {
-      setAnimationClass(variant === "shadcn" ? "shadcn-dialog-enter" : "haiku-dialog-enter")
-    } else {
-      setAnimationClass(variant === "shadcn" ? "shadcn-dialog-exit" : "haiku-dialog-exit")
-    }
-  }, [open, variant])
 
   // Handle escape key
   React.useEffect(() => {
@@ -76,7 +66,6 @@ export function AlertDialogContent({
 
     const handlePointerDownOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      // Check if click is inside the dialog content
       if (contentRef.current?.contains(target)) {
         return
       }
@@ -91,17 +80,16 @@ export function AlertDialogContent({
     return () => document.removeEventListener("mousedown", handlePointerDownOutside)
   }, [open, closeOnOverlayClick, onOpenChange, onPointerDownOutside])
 
-  if (!open && !animationClass.includes("exit")) return null
+  if (!open) return null
 
   return (
     <AlertDialogPortal>
-      <AlertDialogOverlay className={variant === "shadcn" ? "" : "haiku-overlay-enter"} />
+      <AlertDialogOverlay />
       <div
         ref={contentRef}
         className={cn(
           contentBaseStyles[variant],
           contentVariants[variant][size],
-          animationClass,
           className
         )}
         role="alertdialog"
