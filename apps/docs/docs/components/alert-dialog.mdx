@@ -1,0 +1,157 @@
+---
+title: AlertDialog
+---
+
+import { AlertDialog, Button, PlayBoard } from "haiku-react-ui"
+import * as React from "react"
+
+# AlertDialog 警告对话框
+
+:::note
+警告对话框用于需要用户确认的重要操作。
+:::
+
+## 何时使用
+
+- 用户执行不可逆操作前的确认
+- 需要用户明确知悉风险的场景
+- 关键操作的二次确认
+
+## 代码演示
+
+<div className='flex flex-col gap-8'>
+
+<PlayBoard
+  heading="Haiku 风格"
+  description="与 HaikuDesign 设计系统一致的样式"
+  code={`import { AlertDialog, Button } from "haiku-react-ui"
+
+export default function Demo() {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger render={<Button>删除文件</Button>} />
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>确认删除</AlertDialogTitle>
+          <AlertDialogDescription>
+            此操作不可撤销，确定要删除该文件吗？
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogAction color="danger">确认删除</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}`}
+>
+  <AlertDialog>
+    <AlertDialogTrigger render={<Button>删除文件</Button>} />
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>确认删除</AlertDialogTitle>
+        <AlertDialogDescription>
+          此操作不可撤销，确定要删除该文件吗？
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>取消</AlertDialogCancel>
+        <AlertDialogAction color="danger">确认删除</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+</PlayBoard>
+
+<PlayBoard
+  heading="shadcn/ui 风格"
+  description="现代简洁风格"
+  code={`import { AlertDialog, Button } from "haiku-react-ui"
+
+export default function Demo() {
+  return (
+    <AlertDialog variant="shadcn">
+      <AlertDialogTrigger render={<Button variant="outline">Show Dialog</Button>} />
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your account.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction>Continue</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}`}
+>
+  <AlertDialog variant="shadcn">
+    <AlertDialogTrigger render={<Button variant="outline">Show Dialog</Button>} />
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This action cannot be undone. This will permanently delete your account.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction>Continue</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+</PlayBoard>
+
+</div>
+
+## API 参考
+
+### AlertDialog
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| open | `boolean` | - | 受控打开状态 |
+| onOpenChange | `(open: boolean) => void` | - | 状态变化回调 |
+| defaultOpen | `boolean` | `false` | 非受控模式默认状态 |
+| variant | `"shadcn" \| "haiku"` | `"haiku"` | 样式变体 |
+| children | `ReactNode` | - | 子组件 |
+
+### AlertDialogTrigger
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| children | `ReactNode` | - | 触发器内容 |
+
+### AlertDialogContent
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| showClose | `boolean` | `true` | 是否显示关闭按钮 |
+| size | `"sm" \| "md" \| "lg"` | `"md"` | 对话框尺寸 |
+
+### AlertDialogHeader
+
+布局组件，包含标题和描述的容器。
+
+### AlertDialogFooter
+
+布局组件，包含取消和确认按钮的容器。
+
+### AlertDialogTitle
+
+对话框标题。
+
+### AlertDialogDescription
+
+对话框描述文字。
+
+### AlertDialogAction
+
+确认按钮，点击后自动关闭对话框。
+
+### AlertDialogCancel
+
+取消按钮，点击后自动关闭对话框。
