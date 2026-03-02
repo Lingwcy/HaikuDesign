@@ -10,6 +10,9 @@ export default defineConfig({
     light: '/rspress-light-logo.png',
     dark: '/rspress-dark-logo.png',
   },
+  globalComponents: [
+    path.join(__dirname, 'components/GlobalToaster.tsx'),
+  ],
   themeConfig: {
     socialLinks: [
       {

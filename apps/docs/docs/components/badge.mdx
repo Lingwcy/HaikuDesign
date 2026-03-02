@@ -1,0 +1,202 @@
+---
+title: Badge
+---
+
+import {
+  Badge,
+  Button,
+  PlayBoard,
+} from "haiku-react-ui"
+import * as React from "react"
+
+export const PrimaryDemo = () => {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="primary" color="default">Default</Badge>
+      <Badge variant="primary" color="primary">Primary</Badge>
+      <Badge variant="primary" color="danger">Danger</Badge>
+      <Badge variant="primary" color="info">Info</Badge>
+      <Badge variant="primary" color="success">Success</Badge>
+      <Badge variant="primary" color="warning">Warning</Badge>
+    </div>
+  )
+}
+
+export const DefaultDemo = () => {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="default" color="default">Default</Badge>
+      <Badge variant="default" color="primary">Primary</Badge>
+      <Badge variant="default" color="danger">Danger</Badge>
+      <Badge variant="default" color="info">Info</Badge>
+      <Badge variant="default" color="success">Success</Badge>
+      <Badge variant="default" color="warning">Warning</Badge>
+    </div>
+  )
+}
+
+export const FilledDemo = () => {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="filled" color="default">Default</Badge>
+      <Badge variant="filled" color="primary">Primary</Badge>
+      <Badge variant="filled" color="danger">Danger</Badge>
+      <Badge variant="filled" color="info">Info</Badge>
+      <Badge variant="filled" color="success">Success</Badge>
+      <Badge variant="filled" color="warning">Warning</Badge>
+    </div>
+  )
+}
+
+export const TextDemo = () => {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="text" color="default">Default</Badge>
+      <Badge variant="text" color="primary">Primary</Badge>
+      <Badge variant="text" color="danger">Danger</Badge>
+      <Badge variant="text" color="info">Info</Badge>
+      <Badge variant="text" color="success">Success</Badge>
+      <Badge variant="text" color="warning">Warning</Badge>
+    </div>
+  )
+}
+
+export const SizeDemo = () => {
+  return (
+    <div className="flex items-center gap-2">
+      <Badge size="sm">Small</Badge>
+      <Badge size="md">Medium</Badge>
+      <Badge size="lg">Large</Badge>
+    </div>
+  )
+}
+
+# Badge 标签
+
+:::note
+标签组件用于显示状态、计数、分类等小标签。
+:::
+
+## 何时使用
+
+- 显示状态（如在线、离线、待处理）
+- 显示数量或计数
+- 分类标签
+- 强调关键信息
+
+## 代码演示
+
+<div className="flex flex-col gap-8">
+  <PlayBoard
+    heading="Primary 风格"
+    description="实心阴影样式，适用于需要强调的标签"
+    code={`import { Badge } from "haiku-react-ui"
+
+export default function Demo() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="primary" color="default">Default</Badge>
+      <Badge variant="primary" color="primary">Primary</Badge>
+      <Badge variant="primary" color="danger">Danger</Badge>
+      <Badge variant="primary" color="info">Info</Badge>
+      <Badge variant="primary" color="success">Success</Badge>
+      <Badge variant="primary" color="warning">Warning</Badge>
+    </div>
+  )
+}`}
+  >
+    <PrimaryDemo />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="Default 风格"
+    description="边框轮廓样式，适用于一般标签"
+    code={`import { Badge } from "haiku-react-ui"
+
+export default function Demo() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="default" color="default">Default</Badge>
+      <Badge variant="default" color="primary">Primary</Badge>
+      <Badge variant="default" color="danger">Danger</Badge>
+      <Badge variant="default" color="info">Info</Badge>
+      <Badge variant="default" color="success">Success</Badge>
+      <Badge variant="default" color="warning">Warning</Badge>
+    </div>
+  )
+}`}
+  >
+    <DefaultDemo />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="Filled 风格"
+    description="浅色填充样式，适用于次要信息"
+    code={`import { Badge } from "haiku-react-ui"
+
+export default function Demo() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="filled" color="default">Default</Badge>
+      <Badge variant="filled" color="primary">Primary</Badge>
+      <Badge variant="filled" color="danger">Danger</Badge>
+      <Badge variant="filled" color="info">Info</Badge>
+      <Badge variant="filled" color="success">Success</Badge>
+      <Badge variant="filled" color="warning">Warning</Badge>
+    </div>
+  )
+}`}
+  >
+    <FilledDemo />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="Text 风格"
+    description="无边框文字样式，适用于轻量标签"
+    code={`import { Badge } from "haiku-react-ui"
+
+export default function Demo() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="text" color="default">Default</Badge>
+      <Badge variant="text" color="primary">Primary</Badge>
+      <Badge variant="text" color="danger">Danger</Badge>
+      <Badge variant="text" color="info">Info</Badge>
+      <Badge variant="text" color="success">Success</Badge>
+      <Badge variant="text" color="warning">Warning</Badge>
+    </div>
+  )
+}`}
+  >
+    <TextDemo />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="尺寸"
+    description="三种尺寸可选"
+    code={`import { Badge } from "haiku-react-ui"
+
+export default function Demo() {
+  return (
+    <div className="flex items-center gap-2">
+      <Badge size="sm">Small</Badge>
+      <Badge size="md">Medium</Badge>
+      <Badge size="lg">Large</Badge>
+    </div>
+  )
+}`}
+  >
+    <SizeDemo />
+  </PlayBoard>
+</div>
+
+## API 参考
+
+### Badge
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| variant | `"primary" \| "default" \| "filled" \| "text"` | `"default"` | 样式变体 |
+| color | `"default" \| "primary" \| "danger" \| "info" \| "success" \| "warning"` | `"default"` | 颜色主题 |
+| size | `"sm" \| "md" \| "lg"` | `"md"` | 尺寸 |
+| children | `ReactNode` | - | 标签内容 |

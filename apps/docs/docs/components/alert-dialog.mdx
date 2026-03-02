@@ -17,48 +17,102 @@ import {
 } from "haiku-react-ui"
 import * as React from "react"
 
-export const HaikuStyleDemo = () => {
+export const PrimaryDemo = () => {
   const [open, setOpen] = React.useState(false)
   return (
     <div className="flex flex-col gap-4">
       <Button onClick={() => setOpen(true)}>删除文件</Button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent closeOnOverlayClick={false}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
-            <AlertDialogDescription>
-              此操作不可撤销，确定要删除该文件吗？
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction color="danger">确认删除</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {open && (
+        <AlertDialog open={open} onOpenChange={setOpen} variant="primary" color="danger">
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>确认删除</AlertDialogTitle>
+              <AlertDialogDescription>
+                此操作不可撤销，确定要删除该文件吗？
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction>确认删除</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }
 
-export const ShadcnStyleDemo = () => {
+export const DefaultDemo = () => {
   const [open, setOpen] = React.useState(false)
   return (
     <div className="flex flex-col gap-4">
-      <Button variant="default" onClick={() => setOpen(true)}>Show Dialog</Button>
-      <AlertDialog open={open} onOpenChange={setOpen} variant="shadcn">
-        <AlertDialogContent closeOnOverlayClick={false}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Button variant="default" onClick={() => setOpen(true)}>打开对话框</Button>
+      {open && (
+        <AlertDialog open={open} onOpenChange={setOpen} variant="default" color="primary">
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>系统更新</AlertDialogTitle>
+              <AlertDialogDescription>
+                有新的系统版本可用，是否现在更新？
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>稍后</AlertDialogCancel>
+              <AlertDialogAction>立即更新</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
+  )
+}
+
+export const FilledDemo = () => {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <div className="flex flex-col gap-4">
+      <Button variant="filled" onClick={() => setOpen(true)}>查看详情</Button>
+      {open && (
+        <AlertDialog open={open} onOpenChange={setOpen} variant="filled" color="info">
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>提示信息</AlertDialogTitle>
+              <AlertDialogDescription>
+                这是一条信息提示内容。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>关闭</AlertDialogCancel>
+              <AlertDialogAction>知道了</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
+  )
+}
+
+export const TextDemo = () => {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <div className="flex flex-col gap-4">
+      <Button variant="text" onClick={() => setOpen(true)}>更多选项</Button>
+      {open && (
+        <AlertDialog open={open} onOpenChange={setOpen} variant="text" color="success">
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>操作成功</AlertDialogTitle>
+              <AlertDialogDescription>
+                您的操作已成功完成！
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>关闭</AlertDialogCancel>
+              <AlertDialogAction>确定</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }
@@ -79,8 +133,8 @@ export const ShadcnStyleDemo = () => {
 
 <div className="flex flex-col gap-8">
   <PlayBoard
-    heading="Haiku 风格"
-    description="与 HaikuDesign 设计系统一致的样式"
+    heading="Primary 风格"
+    description="实心阴影样式，适用于重要操作确认"
     code={`import { AlertDialog, Button } from "haiku-react-ui"
 import { useState } from "react"
 
@@ -89,8 +143,8 @@ export default function Demo() {
   return (
     <>
       <Button onClick={() => setOpen(true)}>删除文件</Button>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent closeOnOverlayClick={false}>
+      <AlertDialog open={open} onOpenChange={setOpen} variant="primary" color="danger">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
@@ -99,7 +153,7 @@ export default function Demo() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction color="danger">确认删除</AlertDialogAction>
+            <AlertDialogAction>确认删除</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -107,12 +161,12 @@ export default function Demo() {
   )
 }`}
   >
-    <HaikuStyleDemo />
+    <PrimaryDemo />
   </PlayBoard>
 
   <PlayBoard
-    heading="shadcn/ui 风格"
-    description="现代简洁风格"
+    heading="Default 风格"
+    description="边框轮廓样式，适用于一般确认"
     code={`import { AlertDialog, Button } from "haiku-react-ui"
 import { useState } from "react"
 
@@ -120,18 +174,18 @@ export default function Demo() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button variant="default" onClick={() => setOpen(true)}>Show Dialog</Button>
-      <AlertDialog open={open} onOpenChange={setOpen} variant="shadcn">
-        <AlertDialogContent closeOnOverlayClick={false}>
+      <Button variant="default" onClick={() => setOpen(true)}>打开对话框</Button>
+      <AlertDialog open={open} onOpenChange={setOpen} variant="default" color="primary">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>系统更新</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your account.
+              有新的系统版本可用，是否现在更新？
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>Continue</AlertDialogAction>
+            <AlertDialogCancel>稍后</AlertDialogCancel>
+            <AlertDialogAction>立即更新</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -139,7 +193,71 @@ export default function Demo() {
   )
 }`}
   >
-    <ShadcnStyleDemo />
+    <DefaultDemo />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="Filled 风格"
+    description="浅色填充样式，适用于信息展示"
+    code={`import { AlertDialog, Button } from "haiku-react-ui"
+import { useState } from "react"
+
+export default function Demo() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button variant="filled" onClick={() => setOpen(true)}>查看详情</Button>
+      <AlertDialog open={open} onOpenChange={setOpen} variant="filled" color="info">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>提示信息</AlertDialogTitle>
+            <AlertDialogDescription>
+              这是一条信息提示内容。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>关闭</AlertDialogCancel>
+            <AlertDialogAction>知道了</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}`}
+  >
+    <FilledDemo />
+  </PlayBoard>
+
+  <PlayBoard
+    heading="Text 风格"
+    description="无边框文字样式，适用于轻量提示"
+    code={`import { AlertDialog, Button } from "haiku-react-ui"
+import { useState } from "react"
+
+export default function Demo() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button variant="text" onClick={() => setOpen(true)}>更多选项</Button>
+      <AlertDialog open={open} onOpenChange={setOpen} variant="text" color="success">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>操作成功</AlertDialogTitle>
+            <AlertDialogDescription>
+              您的操作已成功完成！
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>关闭</AlertDialogCancel>
+            <AlertDialogAction>确定</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}`}
+  >
+    <TextDemo />
   </PlayBoard>
 </div>
 
@@ -152,7 +270,9 @@ export default function Demo() {
 | open | `boolean` | - | 受控打开状态 |
 | onOpenChange | `(open: boolean) => void` | - | 状态变化回调 |
 | defaultOpen | `boolean` | `false` | 非受控模式默认状态 |
-| variant | `"shadcn" \| "haiku"` | `"haiku"` | 样式变体 |
+| variant | `"primary" \| "default" \| "filled" \| "text"` | `"default"` | 样式变体 |
+| color | `"default" \| "primary" \| "danger" \| "info" \| "success" \| "warning"` | `"default"` | 颜色主题 |
+| size | `"sm" \| "md" \| "lg"` | `"md"` | 对话框尺寸 |
 | children | `ReactNode` | - | 子组件 |
 
 ### AlertDialogContent
@@ -160,9 +280,11 @@ export default function Demo() {
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | showClose | `boolean` | `true` | 是否显示关闭按钮 |
-| size | `"sm" \| "md" \| "lg"` | `"md"` | 对话框尺寸 |
+| size | `"sm" \| "md" \| "lg"` | `"md"` | 对话框尺寸（覆盖父组件） |
 | closeOnOverlayClick | `boolean` | `true` | 点击遮罩是否关闭 |
 | closeOnEscape | `boolean` | `true` | 按 ESC 是否关闭 |
+| onEscapeKeyDown | `(event: KeyboardEvent) => void` | - | 按下 ESC 键时的回调 |
+| onPointerDownOutside | `(event: PointerEvent) => void` | - | 点击对话框外部时的回调 |
 
 ### AlertDialogHeader
 
@@ -182,8 +304,8 @@ export default function Demo() {
 
 ### AlertDialogAction
 
-确认按钮，点击后自动关闭对话框。
+确认按钮，点击后自动关闭对话框。颜色继承自 AlertDialog 的 color 属性。
 
 ### AlertDialogCancel
 
-取消按钮，点击后自动关闭对话框。
+取消按钮，点击后自动关闭对话框。样式根据 AlertDialog 的 variant 自动适配。
