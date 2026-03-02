@@ -12,7 +12,10 @@ export function AlertDialogPortal({ children }: AlertDialogPortalProps) {
     setMounted(true)
   }, [])
 
-  if (!mounted) return null
+  // During SSR or before mount, render inline (fallback)
+  if (!mounted || typeof document === "undefined") {
+    return <>{children}</>
+  }
 
   return ReactDOM.createPortal(children, document.body)
 }

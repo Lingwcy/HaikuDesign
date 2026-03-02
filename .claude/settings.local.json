@@ -4,7 +4,9 @@
       "Bash(pnpm test:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(HTTP_PROXY=\"http://127.0.0.1:7897\" HTTPS_PROXY=\"http://127.0.0.1:7897\" git push:*)",
+      "Bash(HTTP_PROXY=\"http://127.0.0.1:7897\" HTTPS_PROXY=\"http://127.0.0.1:7897\" git fetch:*)"
     ]
   },
   "outputStyle": "Explanatory"

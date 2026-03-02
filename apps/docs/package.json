@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "pnpm --filter haiku-ui build && rspress build",
-    "dev": "pnpm --filter haiku-ui build && rspress dev",
-    "preview": "pnpm --filter haiku-ui build && rspress preview"
+    "build": "pnpm --filter haiku-react-ui build && rspress build",
+    "dev": "pnpm --filter haiku-react-ui build && rspress dev",
+    "preview": "pnpm --filter haiku-react-ui build && rspress preview"
   },
   "dependencies": {
-    "haiku-ui": "workspace:*",
+    "haiku-react-ui": "workspace:*",
     "react-helmet-async": "^2.0.5",
     "rspress": "^1.40.2"
   },

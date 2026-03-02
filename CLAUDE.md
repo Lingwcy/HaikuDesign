@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-HaikuDesign is a monorepo containing a React UI component library (haiku-ui) with Rspress documentation, a Python Flask backend, and an empty CLI placeholder.
+HaikuDesign is a monorepo containing a React UI component library (haiku-react-ui) with Rspress documentation, a Python Flask backend, and an empty CLI placeholder.
 
 ## Package Manager
 
@@ -85,7 +85,7 @@ HaikuDesign/
 
 ### Documentation
 
-Rspress-based documentation that consumes haiku-ui as a workspace dependency.
+Rspress-based documentation that consumes haiku-react-ui as a workspace dependency.
 
 ### Backend
 
