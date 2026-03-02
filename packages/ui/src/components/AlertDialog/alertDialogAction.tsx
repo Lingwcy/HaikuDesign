@@ -2,6 +2,7 @@ import * as React from "react"
 import { Button } from "../Button"
 import { useAlertDialogContext } from "./alertDialog"
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AlertDialogActionProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "color"> {}
 
 export function AlertDialogAction({ className, onClick, ...props }: AlertDialogActionProps) {

@@ -1,5 +1,4 @@
 import * as React from "react"
-import { cn } from "../../lib/utils"
 import type { AlertDialogProps, AlertDialogTriggerProps, AlertDialogVariant } from "./types"
 
 interface AlertDialogContextValue {

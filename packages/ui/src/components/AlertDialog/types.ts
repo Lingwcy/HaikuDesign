@@ -20,9 +20,8 @@ export interface AlertDialogPortalProps {
   children?: React.ReactNode
 }
 
-export interface AlertDialogOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
-  // Additional overlay-specific props can be added here
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AlertDialogOverlayProps = React.HTMLAttributes<HTMLDivElement>
 
 export interface AlertDialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
   showClose?: boolean
@@ -31,28 +30,20 @@ export interface AlertDialogContentProps extends React.HTMLAttributes<HTMLDivEle
   onPointerDownOutside?: (event: PointerEvent) => void
 }
 
-export interface AlertDialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  // Additional header-specific props can be added here
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AlertDialogHeaderProps = React.HTMLAttributes<HTMLDivElement>
 
-export interface AlertDialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {
-  // Additional footer-specific props can be added here
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AlertDialogFooterProps = React.HTMLAttributes<HTMLDivElement>
 
-export interface AlertDialogTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
-  // Additional title-specific props can be added here
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AlertDialogTitleProps = React.HTMLAttributes<HTMLHeadingElement>
 
-export interface AlertDialogDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
-  // Additional description-specific props can be added here
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AlertDialogDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 
-export interface AlertDialogActionProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  // Additional action-specific props can be added here
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AlertDialogActionProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
-export interface AlertDialogCancelProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  // Additional cancel-specific props can be added here
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type AlertDialogCancelProps = React.ButtonHTMLAttributes<HTMLButtonElement>
