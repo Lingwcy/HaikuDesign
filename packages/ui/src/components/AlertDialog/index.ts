@@ -1,3 +1,7 @@
+export { AlertDialogHeader } from "./alertDialogHeader"
+export { AlertDialogFooter } from "./alertDialogFooter"
+export { AlertDialogTitle } from "./alertDialogTitle"
+export { AlertDialogDescription } from "./alertDialogDescription"
 export { AlertDialog } from "./alertDialog"
 export { AlertDialogTrigger } from "./alertDialog"
 export { useAlertDialogContext } from "./alertDialog"
