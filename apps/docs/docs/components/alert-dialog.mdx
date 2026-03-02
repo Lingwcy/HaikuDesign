@@ -18,12 +18,13 @@ import {
 import * as React from "react"
 
 export const HaikuStyleDemo = () => {
+  const [open, setOpen] = React.useState(false)
   return (
-    <AlertDialog defaultOpen>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>
-        <Button>删除文件</Button>
+        <Button onClick={() => setOpen(true)}>删除文件</Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent closeOnOverlayClick={false}>
         <AlertDialogHeader>
           <AlertDialogTitle>确认删除</AlertDialogTitle>
           <AlertDialogDescription>
@@ -40,12 +41,13 @@ export const HaikuStyleDemo = () => {
 }
 
 export const ShadcnStyleDemo = () => {
+  const [open, setOpen] = React.useState(false)
   return (
-    <AlertDialog defaultOpen variant="shadcn">
+    <AlertDialog open={open} onOpenChange={setOpen} variant="shadcn">
       <AlertDialogTrigger>
-        <Button variant="default">Show Dialog</Button>
+        <Button variant="default" onClick={() => setOpen(true)}>Show Dialog</Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent closeOnOverlayClick={false}>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
