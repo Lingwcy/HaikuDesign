@@ -3,7 +3,8 @@
  * 显示所有已选择/上传的文件及其进度
  */
 import { Icon } from "@iconify/react";
-import { UploadFile, type UploadStatus } from "../types";
+import { UploadFile, type UploadStatus, type ChunkProgress } from "../types";
+import { ChunkList, CompactChunkProgress } from "./ChunkProgress";
 
 /** 文件列表项组件 Props */
 interface FileItemProps {
@@ -13,13 +14,15 @@ interface FileItemProps {
     onRemove?: (id: string) => void;
     /** 取消上传回调 */
     onCancel?: (id: string) => void;
+    /** 分片进度信息 */
+    chunkProgress?: ChunkProgress;
 }
 
 /**
  * 单个文件项组件
  * 显示文件名、进度条、状态图标
  */
-function FileItem({ file, onRemove, onCancel }: FileItemProps) {
+function FileItem({ file, onRemove, onCancel, chunkProgress }: FileItemProps) {
     const { id, file: fileData, status, progress, error } = file;
 
     // 状态图标配置
@@ -55,13 +58,22 @@ function FileItem({ file, onRemove, onCancel }: FileItemProps) {
                 {/* 进度条 */}
                 {(status === "uploading" || status === "success") && (
                     <div className="mt-1">
-                        <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-blue-500 transition-all duration-300"
-                                style={{ width: `${progress}%` }}
-                            />
+                        <div className="flex items-center gap-2">
+                            <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-blue-500 transition-all duration-300"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                            <span className="text-xs text-gray-500 whitespace-nowrap">{progress}%</span>
                         </div>
-                        <span className="text-xs text-gray-500">{progress}%</span>
+                        {/* 分片进度信息 */}
+                        {chunkProgress && chunkProgress.totalChunks > 1 && (
+                            <ChunkList
+                                chunkProgress={chunkProgress}
+                                totalChunks={chunkProgress.totalChunks}
+                            />
+                        )}
                     </div>
                 )}
 
@@ -111,13 +123,15 @@ interface FileListProps {
     onCancel?: (id: string) => void;
     /** 是否显示 */
     show?: boolean;
+    /** 分片进度映射 */
+    chunkProgressMap?: Record<string, ChunkProgress>;
 }
 
 /**
  * 文件列表组件
  * 渲染所有已选择的文件
  */
-function FileList({ files, onRemove, onCancel, show = true }: FileListProps) {
+function FileList({ files, onRemove, onCancel, show = true, chunkProgressMap }: FileListProps) {
     if (!show || files.length === 0) {
         return null;
     }
@@ -130,6 +144,7 @@ function FileList({ files, onRemove, onCancel, show = true }: FileListProps) {
                     file={file}
                     onRemove={onRemove}
                     onCancel={onCancel}
+                    chunkProgress={chunkProgressMap?.[file.id]}
                 />
             ))}
         </div>

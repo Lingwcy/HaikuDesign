@@ -65,6 +65,56 @@ export type UploadErrorType =
     | 'ABORT_ERROR'           // 取消上传
     | 'UNKNOWN_ERROR';        // 未知错误
 
+/** 分片上传配置 */
+export interface ChunkedUploadConfig {
+    /** 是否启用分片上传 */
+    chunked?: boolean;
+    /** 分片大小（字节），默认 2MB */
+    chunkSize?: number;
+    /** 分片并行数，默认 3 */
+    chunkConcurrency?: number;
+    /** 是否启用断点续传 */
+    resumable?: boolean;
+    /** 获取已上传分片列表的 API */
+    chunkedUrl?: string;
+    /** 合并分片的 API */
+    mergeUrl?: string;
+    /** 触发自动分片上传的文件大小阈值，默认 5MB */
+    chunkThreshold?: number;
+}
+
+/** 分片信息 */
+export interface UploadChunk {
+    index: number;       // 分片索引
+    start: number;       // 起始字节
+    end: number;         // 结束字节
+    size: number;        // 分片大小
+    uploaded: boolean;   // 是否已上传
+}
+
+/** 分片上传进度 */
+export interface ChunkProgress {
+    chunkIndex: number;
+    chunkProgress: number;  // 当前分片进度 0-100
+    totalProgress: number;  // 整体进度 0-100
+    uploadedChunks: number;
+    totalChunks: number;
+}
+
+/** 分片上传选项 */
+export interface ChunkUploadOptions {
+    action: string;
+    chunk: Blob;
+    chunkIndex: number;
+    totalChunks: number;
+    fileName: string;
+    fileSize: number;
+    method?: HttpMethod;
+    headers?: Record<string, string>;
+    onProgress?: (event: ProgressEvent<EventTarget>) => void;
+    signal?: AbortSignal;
+}
+
 /** 上传错误接口 */
 export interface UploadError {
     type: UploadErrorType;
@@ -125,6 +175,10 @@ export interface UploadConfig {
     /** 请求体字段名，默认 "file" */
     name?: string;
 
+    // ============ 分片上传配置 ============
+    /** 分片上传配置 */
+    chunkedConfig?: ChunkedUploadConfig;
+
     // ============ 回调 ============
     /** 文件变化回调 */
     onChange?: (files: UploadFile[]) => void;
@@ -154,6 +208,7 @@ export interface UseUploadOptions {
     headers: Record<string, string> | undefined;
     data: Record<string, unknown> | undefined;
     name: string;
+    chunkedConfig: ChunkedUploadConfig | undefined;
 }
 
 const uploadTriggerVariants = cva(

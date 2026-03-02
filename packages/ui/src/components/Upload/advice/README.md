@@ -12,10 +12,11 @@
 Upload/
 ├── index.tsx          # 主组件，处理核心逻辑 (统一 API)
 ├── types.ts           # 类型定义和 CVA 变体
-├── utils.ts           # XHR 上传工具函数
+├── utils.ts           # XHR 上传工具函数（含分片上传）
 ├── advice/           # 本文档目录
 └── components/
-    ├── FileList.tsx       # 文件列表组件 (新增)
+    ├── FileList.tsx       # 文件列表组件
+    ├── ChunkProgress.tsx  # 分片进度展示组件
     ├── ButtonUpload.tsx   # 按钮样式
     ├── DraggerUpload.tsx  # 拖拽样式
     ├── ImageUpload.tsx    # 图片样式
@@ -41,6 +42,9 @@ Upload/
 | 自定义请求体数据 (data) | ✅ |
 | 强类型 accept | ✅ |
 | 目录上传 (directory) | ✅ |
+| 分片上传 (chunked) | ✅ |
+| 断点续传 (resumable) | ✅ |
+| 分片进度展示 | ✅ |
 
 ---
 
@@ -187,34 +191,82 @@ useEffect(() => {
 
 ---
 
-### 2.6 大文件分片上传
+### 2.6 大文件分片上传 ✅ 已完成
 
-**问题**：大文件上传容易被中断，需要分片上传支持。
+**状态**：✅ 已完成
 
-```typescript
-interface UploadProps {
-  /** 是否启用分片上传 */
-  chunked?: boolean;
-  /** 分片大小（字节），默认 2MB */
-  chunkSize?: number;
-  /** 分片并行数，默认 3 */
-  chunkConcurrent?: number;
-}
+**实现位置**：
+- `types.ts` - `ChunkedUploadConfig`, `ChunkProgress` 类型
+- `utils.ts` - `splitFileIntoChunks`, `uploadChunk`, `checkUploadedChunks`, `mergeChunks` 函数
+- `index.tsx` - `uploadWithChunkedMode` 函数
+- `components/ChunkProgress.tsx` - 分片进度展示组件
+
+**使用示例**：
+
+```tsx
+<Upload
+  action="/api/upload/chunk"
+  chunkedConfig={{
+    chunked: true,
+    chunkSize: 2 * 1024 * 1024,        // 分片大小 2MB
+    chunkConcurrency: 3,                 // 并行数（0=自动）
+    chunkThreshold: 5 * 1024 * 1024,   // 超过 5MB 启用
+    mergeUrl: '/api/upload/merge',      // 合并接口
+  }}
+/>
 ```
 
-**实现思路**：
+**核心实现**：
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    分片上传流程                        │
 ├─────────────────────────────────────────────────────┤
-│  1. 读取文件                                         │
-│  2. 按 chunkSize 分割成多个 blob                     │
-│  3. 并行上传多个分片 (控制并发数)                      │
-│  4. 服务端合并分片                                    │
-│  5. 返回最终 URL                                     │
+│  1. 检查文件大小 > chunkThreshold (默认 5MB)        │
+│  2. 调用 checkUploadedChunks 查询已上传分片         │
+│  3. 使用 File.slice() 分割文件成多个 Blob          │
+│  4. 并行上传多个分片 (通过并发控制)                 │
+│  5. 调用 mergeUrl 合并所有分片                      │
+│  6. 返回最终文件的 URL                             │
 └─────────────────────────────────────────────────────┘
 ```
+
+**自动并发计算**：
+- < 10MB: 2 并发
+- 10-50MB: 3 并发
+- 50-100MB: 4 并发
+- 100-500MB: 5 并发
+- > 500MB: 6 并发
+
+---
+
+### 2.7 断点续传 ✅ 已完成
+
+**状态**：✅ 已完成
+
+**实现位置**：
+- `utils.ts` - `checkUploadedChunks` 函数
+
+**使用示例**：
+
+```tsx
+<Upload
+  action="/api/upload/chunk"
+  chunkedConfig={{
+    chunked: true,
+    resumable: true,                        // 启用断点续传
+    chunkedUrl: '/api/upload/chunks',       // 查询已上传分片
+    mergeUrl: '/api/upload/merge',          // 合并接口
+  }}
+/>
+```
+
+**实现原理**：
+- 上传前先调用 chunkedUrl 查询已上传的分片索引
+- 服务端返回已上传的分片列表 [0, 1, 2, 5]
+- 客户端过滤出未上传的分片 [3, 4, 6, 7...]
+- 只上传剩余的分片
+- 合并时等待所有分片完成
 
 ---
 
@@ -619,15 +671,15 @@ vitest
 
 ### Phase 3: 高级功能 (v3.x)
 
-- [ ] 分片上传
-- [ ] 断点续传
-- [ ] 大文件处理
+- [x] 分片上传
+- [x] 断点续传
+- [x] 大文件处理
 
 ---
 
 ## 九、总结
 
-Upload 组件 v1.x 已完成全部核心功能，主要包括：
+Upload 组件 v3.x 已完成全部高级功能，主要包括：
 
 1. **统一 API**：基于 UploadConfig 的声明式配置
 2. **文件验证**：accept、maxSize、minSize、maxCount 完整支持
@@ -635,8 +687,8 @@ Upload 组件 v1.x 已完成全部核心功能，主要包括：
 4. **进度显示**：每文件独立进度条，实时更新
 5. **错误处理**：详细的错误类型和回调
 6. **强类型**：完整的 TypeScript 类型支持
+7. **分片上传**：大文件自动分割并行上传，可配置分片大小和并发数
+8. **断点续传**：支持查询已上传分片，从中断处继续上传
 
-**v1.x 已完成** → 建议进入 Phase 2 增强体验：
-- 目录上传、粘贴上传、国际化、图片压缩预览
-
-建议按 Phase 逐步迭代，避免一次性改动过大。
+**v3.x 已完成** → 后续可考虑：
+- 粘贴上传、国际化、图片压缩预览

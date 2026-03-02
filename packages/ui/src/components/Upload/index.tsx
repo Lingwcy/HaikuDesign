@@ -45,9 +45,12 @@ import {
     type UploadErrorType,
     type UploadAccept,
     type UploadAcceptType,
+    type ChunkedUploadConfig,
+    type ChunkProgress,
+    type UploadChunk,
     UploadTriggerConfig,
 } from "./types";
-import { uploadFile } from "./utils";
+import { uploadFile, splitFileIntoChunks, uploadChunk, checkUploadedChunks, mergeChunks } from "./utils";
 import ButtonUpload from "./components/ButtonUpload";
 import DraggerUpload from "./components/DraggerUpload";
 import ImageUpload from "./components/ImageUpload";
@@ -64,6 +67,37 @@ const DEFAULT_OPTIONS: Partial<UploadConfig> = {
     shape: "rounded",
     method: "post",
     name: "file",
+};
+
+// 分片上传默认配置
+const DEFAULT_CHUNKED_CONFIG: Required<ChunkedUploadConfig> = {
+    chunked: false,
+    chunkSize: 2 * 1024 * 1024, // 2MB
+    chunkConcurrency: 0, // 0 表示根据文件大小自动计算
+    resumable: false,
+    chunkedUrl: "",
+    mergeUrl: "",
+    chunkThreshold: 5 * 1024 * 1024, // 5MB
+};
+
+/**
+ * 根据文件大小计算合适的并发数
+ * @param fileSize - 文件大小（字节）
+ * @returns 建议的并发数
+ */
+const calculateConcurrency = (fileSize: number): number => {
+    const mb = fileSize / 1024 / 1024;
+    // 文件越大，并发数越高，但有上限
+    // < 10MB: 2 并发
+    // 10-50MB: 3 并发
+    // 50-100MB: 4 并发
+    // 100-500MB: 5 并发
+    // > 500MB: 6 并发
+    if (mb < 10) return 2;
+    if (mb < 50) return 3;
+    if (mb < 100) return 4;
+    if (mb < 500) return 5;
+    return 6;
 };
 
 /** 创建上传错误 */
@@ -94,6 +128,12 @@ function Upload(config: UploadConfig) {
         ...config,
     } as Required<UploadConfig>;
 
+    // 解析分片上传配置
+    const chunkedConfig: Required<ChunkedUploadConfig> = {
+        ...DEFAULT_CHUNKED_CONFIG,
+        ...config.chunkedConfig,
+    };
+
     // 解构配置
     const {
         mode,
@@ -119,6 +159,17 @@ function Upload(config: UploadConfig) {
         onComplete,
     } = options;
 
+    // 解构分片配置
+    const {
+        chunked,
+        chunkSize,
+        chunkConcurrency,
+        resumable,
+        chunkedUrl,
+        mergeUrl,
+        chunkThreshold,
+    } = chunkedConfig;
+
     // 文件列表状态
     const [files, setFiles] = useState<UploadFile[]>([]);
     // 拖拽状态
@@ -129,6 +180,8 @@ function Upload(config: UploadConfig) {
     const [status, setStatus] = useState<UploadStatus>("idle");
     // 全局进度
     const [progress, setProgress] = useState(0);
+    // 分片进度追踪
+    const [chunkProgress, setChunkProgress] = useState<Record<string, ChunkProgress>>({});
 
     // Refs
     const inputId = useId();
@@ -192,7 +245,7 @@ function Upload(config: UploadConfig) {
         return { valid, errors };
     }, [maxCount, validateFile]);
 
-    // 上传单个文件
+    // 上传单个文件（支持分片上传）
     const uploadSingleFile = async (
         fileItem: UploadFile,
         totalBytes: number,
@@ -203,6 +256,37 @@ function Upload(config: UploadConfig) {
         // 创建 AbortController
         const controller = new AbortController();
         abortRef.current = controller;
+
+        // 判断是否使用分片上传
+        const useChunkedUpload = chunked && file.size > chunkThreshold;
+
+        // 普通上传模式
+        if (!useChunkedUpload) {
+            return uploadWithNormalMode(
+                fileItem,
+                totalBytes,
+                uploadedBytes,
+                controller
+            );
+        }
+
+        // 分片上传模式
+        return uploadWithChunkedMode(
+            fileItem,
+            totalBytes,
+            uploadedBytes,
+            controller
+        );
+    };
+
+    // 普通上传模式
+    const uploadWithNormalMode = async (
+        fileItem: UploadFile,
+        totalBytes: number,
+        uploadedBytes: number,
+        controller: AbortController
+    ): Promise<UploadFile> => {
+        const { file } = fileItem;
 
         try {
             // 构建 FormData
@@ -281,6 +365,230 @@ function Upload(config: UploadConfig) {
         }
     };
 
+    // 分片上传模式
+    const uploadWithChunkedMode = async (
+        fileItem: UploadFile,
+        totalBytes: number,
+        uploadedBytes: number,
+        controller: AbortController
+    ): Promise<UploadFile> => {
+        const { file } = fileItem;
+        const fileId = fileItem.id;
+
+        try {
+            // 1. 如果启用断点续传，先检查已上传的分片
+            // 断点续传的目的是：上传中断后，从上次断开的地方继续
+            // 所以需要在分割文件之前检查，避免重复处理已上传的分片
+            let uploadedChunkIndices: number[] = [];
+            if (resumable && chunkedUrl) {
+                uploadedChunkIndices = await checkUploadedChunks(
+                    chunkedUrl,
+                    file,
+                    chunkSize,
+                    headers
+                );
+            }
+
+            // 2. 分割文件
+            const chunks = splitFileIntoChunks(file, chunkSize);
+            const totalChunks = chunks.length;
+
+            // 计算实际使用的并发数
+            // 如果用户没有设置（为0），则根据文件大小自动计算
+            // 同时不能超过总分片数量
+            const actualConcurrency =
+                chunkConcurrency > 0
+                    ? Math.min(chunkConcurrency, totalChunks)
+                    : Math.min(calculateConcurrency(file.size), totalChunks);
+
+            // 过滤出需要上传的分片
+            const chunksToUpload = chunks.filter(
+                (chunk) => !uploadedChunkIndices.includes(chunk.index)
+            );
+
+            // 3. 并行上传分片
+            // 使用 ref 来追踪所有分片的进度（用于并行上传时的正确计算）
+            const completedChunksRef = { current: uploadedChunkIndices.length };
+            // 追踪每个分片的进度 (0-100)
+            const chunkProgressMapRef = { current: new Map<number, number>() };
+
+            // 创建分片任务
+            const uploadTasks = chunksToUpload.map((chunk) => async () => {
+                //
+                if (cancelRef.current || controller.signal.aborted) {
+                    throw new DOMException("Upload aborted", "AbortError");
+                }
+
+                // 在开始时记录这个分片的初始进度为0
+                chunkProgressMapRef.current.set(chunk.index, 0);
+
+                await uploadChunk({
+                    action,
+                    chunk: chunk.blob,
+                    chunkIndex: chunk.index,
+                    totalChunks,
+                    fileName: file.name,
+                    fileSize: file.size,
+                    method,
+                    headers,
+                    signal: controller.signal,
+                    onProgress: (event: ProgressEvent) => {
+                        if (!event.lengthComputable) {
+                            return;
+                        }
+
+                        const chunkLoaded = event.loaded;
+                        const chunkTotal = chunk.end - chunk.start;
+                        const chunkProgressPercent = Math.min(
+                            100,
+                            Math.round((chunkLoaded / chunkTotal) * 100)
+                        );
+
+                        // 更新这个分片的进度
+                        chunkProgressMapRef.current.set(chunk.index, chunkProgressPercent);
+
+                        // 计算总进度：已完成的分片 + 所有正在上传的分片的进度
+                        const completedCount = completedChunksRef.current;
+                        let inProgressProgress = 0;
+                        chunkProgressMapRef.current.forEach((progress) => {
+                            inProgressProgress += progress;
+                        });
+
+                        // 进度 = (已完成分片数 * 100 + 正在上传分片的进度和) / 总分片数
+                        const totalProgress = Math.min(
+                            100,
+                            Math.round(
+                                ((completedCount * 100) + inProgressProgress) / totalChunks
+                            )
+                        );
+
+                        setChunkProgress((prev) => ({
+                            ...prev,
+                            [fileId]: {
+                                chunkIndex: chunk.index,
+                                chunkProgress: chunkProgressPercent,
+                                totalProgress,
+                                uploadedChunks: completedCount,
+                                totalChunks,
+                            },
+                        }));
+
+                        setProgress(totalProgress);
+
+                        // 更新文件进度
+                        onProgress?.(totalProgress, file);
+                        setFiles((prev) =>
+                            prev.map((f) =>
+                                f.id === fileItem.id
+                                    ? { ...f, progress: totalProgress }
+                                    : f
+                            )
+                        );
+                    },
+                });
+
+                // 分片上传完成后，增加已完成计数，并清除进度记录
+                completedChunksRef.current++;
+                chunkProgressMapRef.current.delete(chunk.index);
+                return chunk.index;
+            });
+
+            // 控制并发数 - 使用更简单可靠的方式
+            const executeWithConcurrency = async (
+                tasks: (() => Promise<number>)[],
+                limit: number
+            ): Promise<number[]> => {
+                const results: number[] = [];
+                const executing: Promise<number>[] = [];
+                let taskIndex = 0;
+
+                const runTask = async (task: () => Promise<number>): Promise<number> => {
+                    const result = await task();
+                    return result;
+                };
+
+                while (taskIndex < tasks.length || executing.length > 0) {
+                    // 启动新任务直到达到限制
+                    while (taskIndex < tasks.length && executing.length < limit) {
+                        const task = tasks[taskIndex];
+                        taskIndex++;
+                        const promise = runTask(task).then((result) => {
+                            results.push(result);
+                            return result;
+                        });
+                        executing.push(promise);
+                    }
+
+                    // 等待至少一个任务完成
+                    if (executing.length > 0) {
+                        await Promise.race(executing);
+                        // 移除已完成的 promise
+                        const completedIndex = executing.findIndex(
+                            (p) => (p as Promise<number>).then !== undefined
+                        );
+                        if (completedIndex !== -1) {
+                            executing.splice(completedIndex, 1);
+                        }
+                    }
+                }
+
+                return results;
+            };
+
+            await executeWithConcurrency(uploadTasks, actualConcurrency);
+
+            // 4. 合并分片
+            let responseText = "";
+            if (mergeUrl) {
+                responseText = await mergeChunks(
+                    mergeUrl,
+                    file.name,
+                    totalChunks,
+                    method === "get" ? "post" : method,
+                    headers
+                );
+            }
+
+            // 上传成功
+            const updatedFile: UploadFile = {
+                ...fileItem,
+                status: "success",
+                progress: 100,
+                response: responseText || "Chunked upload completed",
+            };
+
+            // 清理分片进度
+            setChunkProgress((prev) => {
+                const newProgress = { ...prev };
+                delete newProgress[fileId];
+                return newProgress;
+            });
+
+            onSuccess?.(responseText || "Chunked upload completed", file);
+            return updatedFile;
+        } catch (event) {
+            // 判断是否为取消
+            const isAbort =
+                cancelRef.current ||
+                (event as DOMException)?.name === "AbortError";
+
+            if (isAbort) {
+                return { ...fileItem, status: "idle", progress: 0 };
+            }
+
+            // 上传失败
+            const error = createUploadError(
+                "NETWORK_ERROR",
+                event instanceof Error ? event.message : "分片上传失败",
+                file,
+                event instanceof Error ? event : undefined
+            );
+
+            onError?.(error, file);
+            return { ...fileItem, status: "error", error };
+        }
+    };
+
     // 上传文件核心逻辑
     const uploadFiles = useCallback(async (filesToUpload: UploadFile[]) => {
         // 无 action 或无文件，直接返回
@@ -326,11 +634,16 @@ function Upload(config: UploadConfig) {
             const result = await uploadSingleFile(fileItem, totalBytes, uploadedBytes);
             uploadedFiles.push(result);
 
-            // 更新文件列表中的状态（只需要更新 status 和 response，progress 已在 onProgress 中更新）
+            // 更新文件列表中的状态（包括 progress 确保显示 100%）
             setFiles((prev) =>
                 prev.map((f) =>
                     f.id === fileItem.id
-                        ? { ...f, status: result.status, response: result.response }
+                        ? {
+                            ...f,
+                            status: result.status,
+                            response: result.response,
+                            progress: result.status === "success" ? 100 : f.progress,
+                        }
                         : f
                 )
             );
@@ -545,10 +858,21 @@ function Upload(config: UploadConfig) {
                 show={showFileList}
                 onRemove={handleRemoveFile}
                 onCancel={handleCancelFile}
+                chunkProgressMap={chunkProgress}
             />
         </div>
     );
 }
 
 export default Upload;
-export type { UploadConfig, UploadFile, UploadError, UploadErrorType, UploadAccept, UploadAcceptType };
+export type {
+    UploadConfig,
+    UploadFile,
+    UploadError,
+    UploadErrorType,
+    UploadAccept,
+    UploadAcceptType,
+    ChunkedUploadConfig,
+    ChunkProgress,
+    UploadChunk,
+};
