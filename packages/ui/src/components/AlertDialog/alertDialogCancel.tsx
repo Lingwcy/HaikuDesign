@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Button } from "../Button"
 import { useAlertDialogContext } from "./alertDialog"
+import type { AlertDialogVariant } from "./types"
 
 // 继承 Button 的属性，排除 color 和 variant（因为按钮样式由 AlertDialog 样式变体决定）
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -9,6 +10,7 @@ interface AlertDialogCancelProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
 /**
  * AlertDialogCancel 取消按钮组件
  * 点击后取消操作并关闭对话框
+ * 使用 variant 继承 AlertDialog 的样式变体，color 默认为 default
  *
  * @example
  * <AlertDialogCancel>取消</AlertDialogCancel>
@@ -22,15 +24,26 @@ export function AlertDialogCancel({ className, onClick, ...props }: AlertDialogC
     onOpenChange(false)
   }
 
-  // 根据样式变体选择不同的按钮样式
-  if (variant === "shadcn") {
-    return (
-      <Button variant="text" className={className} onClick={handleClick} {...props} />
-    )
+  // 取消按钮的样式映射：
+  // primary/filled variant -> 使用 filled 样式的 default 颜色（次要操作）
+  // default/text variant -> 使用 default 样式的 default 颜色（边框轮廓）
+  const getCancelVariant = (): AlertDialogVariant => {
+    switch (variant) {
+      case "primary":
+      case "filled":
+        return "filled"
+      default:
+        return "default"
+    }
   }
 
-  // haiku 风格：默认按钮样式
   return (
-    <Button variant="default" color="default" className={className} onClick={handleClick} {...props} />
+    <Button
+      variant={getCancelVariant()}
+      color="default"
+      className={className}
+      onClick={handleClick}
+      {...props}
+    />
   )
 }

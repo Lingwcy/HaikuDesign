@@ -1,5 +1,5 @@
 import * as React from "react"
-import type { AlertDialogProps, AlertDialogTriggerProps, AlertDialogVariant } from "./types"
+import type { AlertDialogProps, AlertDialogColor, AlertDialogVariant, AlertDialogSize } from "./types"
 
 /**
  * AlertDialog 上下文值
@@ -10,6 +10,10 @@ interface AlertDialogContextValue {
   open: boolean
   /** 当前样式变体 */
   variant: AlertDialogVariant
+  /** 当前颜色 */
+  color: AlertDialogColor
+  /** 当前尺寸 */
+  size: AlertDialogSize
   /** 打开状态变化回调 */
   onOpenChange: (open: boolean) => void
 }
@@ -52,7 +56,9 @@ export function AlertDialog({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   defaultOpen = false,
-  variant = "haiku",
+  variant = "default",
+  color = "default",
+  size = "md",
   children,
 }: AlertDialogProps) {
   // 非受控模式的内部状态
@@ -77,7 +83,7 @@ export function AlertDialog({
   )
 
   return (
-    <AlertDialogContext.Provider value={{ open, variant, onOpenChange: handleOpenChange }}>
+    <AlertDialogContext.Provider value={{ open, variant, color, size, onOpenChange: handleOpenChange }}>
       {children}
     </AlertDialogContext.Provider>
   )
@@ -92,7 +98,12 @@ export function AlertDialog({
  *   <Button>打开对话框</Button>
  * </AlertDialogTrigger>
  */
-export function AlertDialogTrigger({ children }: AlertDialogTriggerProps) {
+export function AlertDialogTrigger({
+  children,
+}: {
+  /** 子元素，可以是普通节点或函数（render props 模式） */
+  children: React.ReactNode | ((props: { open: boolean }) => React.ReactNode)
+}) {
   const { onOpenChange } = useAlertDialogContext()
 
   return (
@@ -101,7 +112,7 @@ export function AlertDialogTrigger({ children }: AlertDialogTriggerProps) {
       className="cursor-pointer inline-flex"
     >
       {/* 支持 render props 模式或普通子元素 */}
-      {typeof children === "function" ? children({ open: false }) : children}
+      {typeof children === "function" ? (children as (props: { open: boolean }) => React.ReactNode)({ open: false }) : children}
     </div>
   )
 }

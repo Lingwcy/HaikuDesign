@@ -4,6 +4,8 @@ import { PlayBoard } from "./components/PlayBoard"
 import { Bubble } from "./components/Bubble"
 import Upload from "./components/Upload";
 import { AlertDialog } from "./components/AlertDialog"
+import { Badge } from "./components/Badge"
+import { toast, Toaster, ToastProvider } from "./components/Toast"
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -24,6 +26,10 @@ export{
     Bubble,
     Upload,
     AlertDialog,
+    Badge,
+    toast,
+    Toaster,
+    ToastProvider,
     AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,

@@ -2,10 +2,23 @@ import * as React from "react"
 
 /**
  * AlertDialog 样式变体
- * - shadcn: 现代简洁风格，类似 shadcn/ui
- * - haiku: HaikuDesign 设计系统风格
+ * - primary: 主要样式（实心背景）
+ * - default: 默认样式（边框轮廓）
+ * - filled: 填充样式（浅色背景）
+ * - text: 文字样式（无边框）
  */
-export type AlertDialogVariant = "shadcn" | "haiku"
+export type AlertDialogVariant = "primary" | "default" | "filled" | "text"
+
+/**
+ * AlertDialog 颜色
+ * - default: 默认灰色
+ * - primary: 主色（品牌色）
+ * - danger: 危险色（删除操作）
+ * - info: 信息色
+ * - success: 成功色
+ * - warning: 警告色
+ */
+export type AlertDialogColor = "default" | "primary" | "danger" | "info" | "success" | "warning"
 
 /**
  * AlertDialog 尺寸
@@ -25,8 +38,12 @@ export interface AlertDialogProps extends React.HTMLAttributes<HTMLDivElement> {
   onOpenChange?: (open: boolean) => void
   /** 非受控模式：默认是否打开 */
   defaultOpen?: boolean
-  /** 样式变体：shadcn 或 haiku */
+  /** 样式变体 */
   variant?: AlertDialogVariant
+  /** 颜色主题 */
+  color?: AlertDialogColor
+  /** 尺寸 */
+  size?: AlertDialogSize
   /** 子组件 */
   children?: React.ReactNode
 }
@@ -58,13 +75,17 @@ export type AlertDialogOverlayProps = React.HTMLAttributes<HTMLDivElement>
  * AlertDialogContent 内容区域属性
  */
 export interface AlertDialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** 是否显示关闭按钮 */
+  /** 是否显示右上角关闭按钮 */
   showClose?: boolean
-  /** 对话框尺寸 */
+  /** 对话框尺寸（覆盖 AlertDialog 的 size） */
   size?: AlertDialogSize
-  /** 按下 Escape 键时的回调 */
+  /** 点击遮罩层是否关闭对话框 */
+  closeOnOverlayClick?: boolean
+  /** 按 ESC 是否关闭对话框 */
+  closeOnEscape?: boolean
+  /** 按下 ESC 键时的回调 */
   onEscapeKeyDown?: (event: KeyboardEvent) => void
-  /** 点击遮罩层外部时的回调 */
+  /** 点击对话框外部时的回调 */
   onPointerDownOutside?: (event: PointerEvent) => void
 }
 

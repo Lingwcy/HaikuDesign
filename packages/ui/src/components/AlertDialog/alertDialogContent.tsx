@@ -1,36 +1,44 @@
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "../../lib/utils"
 import { Icon } from "@iconify/react"
 import { useAlertDialogContext } from "./alertDialog"
 import { AlertDialogPortal } from "./alertDialogPortal"
 import { AlertDialogOverlay } from "./alertDialogOverlay"
 import type { AlertDialogSize } from "./types"
+import { Button } from "../Button"
 
 /**
- * 内容区域尺寸样式
+ * 对话框内容样式变体
  */
-const contentVariants = {
-  shadcn: {
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
+const alertDialogContentVariants = cva("", {
+  variants: {
+    variant: {
+      primary: "bg-white dark:bg-zinc-900 border border-primary-200 dark:border-primary-800",
+      default: "bg-white dark:bg-zinc-900 border border-default",
+      filled: "bg-zinc-100 dark:bg-zinc-800 border-transparent",
+      text: "bg-transparent border-transparent shadow-none",
+    },
+    color: {
+      default: "",
+      primary: "",
+      danger: "",
+      info: "",
+      success: "",
+      warning: "",
+    },
+    size: {
+      sm: "max-w-xs",
+      md: "max-w-sm",
+      lg: "max-w-md",
+    },
   },
-  haiku: {
-    sm: "max-w-xs",
-    md: "max-w-sm",
-    lg: "max-w-md",
+  defaultVariants: {
+    variant: "default",
+    color: "default",
+    size: "md",
   },
-}
-
-/**
- * 内容区域基础样式
- */
-const contentBaseStyles = {
-  // shadcn 风格
-  shadcn: "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
-  // haiku 风格
-  haiku: "fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] gap-3 rounded-xl border border-default bg-white p-5 shadow-xl dark:bg-zinc-900",
-}
+})
 
 /**
  * AlertDialogContent 对话框内容区域组件
@@ -40,7 +48,7 @@ export function AlertDialogContent({
   className,
   children,
   showClose = true,
-  size = "md",
+  size,
   closeOnOverlayClick = true,
   closeOnEscape = true,
   onEscapeKeyDown,
@@ -49,7 +57,7 @@ export function AlertDialogContent({
 }: React.HTMLAttributes<HTMLDivElement> & {
   /** 是否显示右上角关闭按钮 */
   showClose?: boolean
-  /** 对话框尺寸 */
+  /** 对话框尺寸（覆盖 AlertDialog 的 size） */
   size?: AlertDialogSize
   /** 点击遮罩层是否关闭对话框 */
   closeOnOverlayClick?: boolean
@@ -60,19 +68,18 @@ export function AlertDialogContent({
   /** 点击对话框外部时的回调 */
   onPointerDownOutside?: (event: PointerEvent) => void
 }) {
-  const { open, variant, onOpenChange } = useAlertDialogContext()
+  const { open, variant, color, size: contextSize, onOpenChange } = useAlertDialogContext()
+  // 使用传入的 size 或继承父组件的 size
+  const finalSize = size ?? contextSize ?? "md"
   // 引用对话框内容元素，用于判断点击是否在内容区域内
   const contentRef = React.useRef<HTMLDivElement>(null)
 
   // 处理 ESC 键关闭
   React.useEffect(() => {
-    // 如果对话框未打开或不允许 ESC 关闭，则不添加监听
     if (!open || !closeOnEscape) return
 
     const handleEscape = (event: KeyboardEvent) => {
-      // 先调用自定义回调
       onEscapeKeyDown?.(event)
-      // 如果回调未阻止默认行为，则关闭对话框
       if (!event.defaultPrevented) {
         onOpenChange(false)
       }
@@ -84,19 +91,15 @@ export function AlertDialogContent({
 
   // 处理点击对话框外部关闭
   React.useEffect(() => {
-    // 如果对话框未打开或不允许点击外部关闭，则不添加监听
     if (!open || !closeOnOverlayClick) return
 
     const handlePointerDownOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      // 检查点击是否在对话框内容区域内
       if (contentRef.current?.contains(target)) {
-        return // 在内容区域内，不关闭
+        return
       }
 
-      // 调用自定义回调
       onPointerDownOutside?.(event as unknown as PointerEvent)
-      // 如果回调未阻止默认行为，则关闭对话框
       if (!event.defaultPrevented) {
         onOpenChange(false)
       }
@@ -106,19 +109,20 @@ export function AlertDialogContent({
     return () => document.removeEventListener("mousedown", handlePointerDownOutside)
   }, [open, closeOnOverlayClick, onOpenChange, onPointerDownOutside])
 
-  // 如果对话框未打开，返回 null
   if (!open) return null
 
   return (
     <AlertDialogPortal>
-      {/* 遮罩层 */}
       <AlertDialogOverlay />
-      {/* 对话框内容 */}
       <div
         ref={contentRef}
         className={cn(
-          contentBaseStyles[variant],
-          contentVariants[variant][size],
+          // 定位样式
+          "fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] p-5 shadow-xl",
+          // 变体样式
+          alertDialogContentVariants({ variant, color, size: finalSize }),
+          // 响应式圆角
+          "rounded-xl sm:rounded-2xl",
           className
         )}
         role="alertdialog"
@@ -128,13 +132,15 @@ export function AlertDialogContent({
         {children}
         {/* 关闭按钮 */}
         {showClose && (
-          <button
+          <Button
+            variant="text"
+            size="sm"
+            className="absolute right-3 top-3"
             onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
             aria-label="关闭"
           >
             <Icon icon="lucide:x" className="h-4 w-4" />
-          </button>
+          </Button>
         )}
       </div>
     </AlertDialogPortal>
