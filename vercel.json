@@ -1,0 +1,8 @@
+{
+  "buildCommand": "pnpm --filter haiku-docs build",
+  "outputDirectory": "apps/docs/dist",
+  "framework": "rspress",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/dist/index.html" }
+  ]
+}
