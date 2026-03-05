@@ -227,6 +227,243 @@ export const chunksUrl = "http://localhost:5000/api/upload/chunks"
   />
 </PlayBoard>
 
+### 分片上传原理
+
+#### 1. 文件分片机制
+
+分片上传使用浏览器原生 `File.slice()` API 将文件分割成多个小块：
+
+```typescript
+// 核心实现（来自 packages/ui/src/components/Upload/utils.ts）
+const splitFileIntoChunks = (file: File, chunkSize: number) => {
+    const chunks = [];
+    let start = 0;
+    let index = 0;
+
+    while (start < file.size) {
+        const end = Math.min(start + chunkSize, file.size);
+        const blob = file.slice(start, end);  // 关键：零拷贝操作
+        chunks.push({ blob, index, start, end });
+        start = end;
+        index++;
+    }
+    return chunks;
+};
+```
+
+**关键点：`File.slice() 是零拷贝操作`**
+
+- `file.slice(start, end)` 不会真正复制数据，只是创建一个指向原文件指定范围的 Blob 视图
+- 内存占用极低，无论文件多大，分片操作的内存开销都是 O(1)
+- 这是浏览器提供的原生 API，无需任何第三方库
+
+**分片示意**（以 10MB 文件、2MB 分片大小为例）：
+
+```
+原始文件 (10MB)
+┌──────────┬──────────┬──────────┬──────────┬──────────┐
+│ Chunk 0  │ Chunk 1  │ Chunk 2  │ Chunk 3  │ Chunk 4  │
+│  0-2MB   │  2-4MB   │  4-6MB   │  6-8MB   │  8-10MB  │
+└──────────┴──────────┴──────────┴──────────┴──────────┘
+   ↓           ↓           ↓           ↓           ↓
+  Blob       Blob        Blob        Blob        Blob
+ (视图)      (视图)      (视图)      (视图)      (视图)
+```
+
+#### 2. 并发控制策略
+
+分片上传采用**滑动窗口并发模式**，通过 Promise.race 实现高效的任务调度：
+
+```typescript
+// 核心实现（来自 packages/ui/src/components/Upload/index.tsx）
+const executeWithConcurrency = async (tasks, limit) => {
+    const results = [];
+    const executing = [];
+    let taskIndex = 0;
+
+    while (taskIndex < tasks.length || executing.length > 0) {
+        // 启动新任务直到达到限制
+        while (taskIndex < tasks.length && executing.length < limit) {
+            const task = tasks[taskIndex++];
+            const promise = task().then(result => {
+                results.push(result);
+                return result;
+            });
+            executing.push(promise);
+        }
+
+        // 等待任意一个任务完成（关键！）
+        if (executing.length > 0) {
+            await Promise.race(executing);
+            // 移除已完成的 promise
+            const completedIndex = executing.findIndex(...);
+            if (completedIndex !== -1) {
+                executing.splice(completedIndex, 1);
+            }
+        }
+    }
+    return results;
+};
+```
+
+**滑动窗口执行流程**（以 10 个分片、3 并发为例）：
+
+```
+时间 →
+┌─────────────────────────────────────────────────────────────┐
+│ 第1轮：启动分片 0, 1, 2                                      │
+│ ┌─────┐ ┌─────┐ ┌─────┐                                     │
+│ │ Ch0 │ │ Ch1 │ │ Ch2 │ ← 3 个任务同时运行                   │
+│ └─────┘ └─────┘ └─────┘                                     │
+│      ↓                                                       │
+│ 第2轮：Ch0 完成，立即启动 Ch3                                │
+│          ┌─────┐ ┌─────┐ ┌─────┐                           │
+│          │ Ch1 │ │ Ch2 │ │ Ch3 │ ← 始终保持 3 个并发         │
+│          └─────┘ └─────┘ └─────┘                            │
+│               ↓                                             │
+│ 第3轮：Ch1 完成，立即启动 Ch4                                │
+│                    ┌─────┐ ┌─────┐ ┌─────┐                  │
+│                    │ Ch2 │ │ Ch3 │ │ Ch4 │                   │
+│                    └─────┘ └─────┘ └─────┘                  │
+│                         ↓                                    │
+│ ... 持续到所有分片完成                                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**为什么使用 Promise.race？**
+
+- `Promise.race(promises)` 返回率先完成（无论成功或失败）的 Promise
+- 一旦有任务完成，立即补充新任务，保持并发槽位始终满载
+- 这种"完成一个补充一个"的模式比"批量完成再批量补充"更高效
+
+#### 3. 自动并发计算
+
+当 `chunkConcurrency` 设置为 `0` 时，会根据文件大小自动计算最优并发数：
+
+```typescript
+const calculateConcurrency = (fileSize: number): number => {
+    const mb = fileSize / 1024 / 1024;
+    if (mb < 10)   return 2;   // < 10MB:   2 并发
+    if (mb < 50)   return 3;   // 10-50MB: 3 并发
+    if (mb < 100)  return 4;   // 50-100MB: 4 并发
+    if (mb < 500)  return 5;   // 100-500MB: 5 并发
+    return 6;                   // > 500MB:  6 并发
+};
+```
+
+**设计考量**：
+- 小文件不需要太高并发，2-3 个即可充分利用带宽
+- 大文件可以承受更高并发，但受限于浏览器和服务器性能
+- 移动端建议降低并发数（2-3），避免设备发热卡顿
+
+#### 4. 进度计算
+
+整体进度通过以下公式计算：
+
+```typescript
+// 进度 = (已完成分片数 × 100 + 所有正在上传分片的进度和) / 总分片数
+const totalProgress = Math.min(
+    100,
+    ((completedCount * 100) + inProgressProgress) / totalChunks
+);
+```
+
+**示例**（总分片 5 个）：
+- 上传完成 Ch0、Ch1，Ch2 进度 50% → `(2×100 + 50) / 5 = 50%`
+- 上传完成 Ch0、Ch1、Ch2，Ch3 进度 80% → `(3×100 + 80) / 5 = 76%`
+- 全部完成 → `5×100 / 5 = 100%`
+
+### 上传流程图
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      分片上传完整流程                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. 触发上传                                                    │
+│     ↓                                                           │
+│  2. 检查 file.size > chunkThreshold (默认 5MB)                 │
+│     ↓                                                           │
+│  3. 是否启用断点续传？                                           │
+│     ├─ 是 → 调用 chunkedUrl 查询已上传的分片                    │
+│     │        返回已上传的分片索引数组 [0, 1, 2]                 │
+│     ↓                                                           │
+│  4. splitFileIntoChunks(file, chunkSize)                      │
+│     生成 [{blob, index: 0, start: 0, end: 2MB}, ...]           │
+│     ↓                                                           │
+│  5. 过滤需要上传的分片（跳过已上传的）                          │
+│     chunks.filter(chunk => !uploadedChunks.includes(chunk.index))│
+│     ↓                                                           │
+│  6. 并行上传 N 个分片（滑动窗口控制）                          │
+│     Promise.race() 完成一个补充一个                             │
+│     ↓                                                           │
+│  7. 调用 mergeUrl 合并所有分片                                  │
+│     POST { fileName, totalChunks }                              │
+│     ↓                                                           │
+│  8. 返回最终文件的 URL                                          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 服务端接口要求
+
+#### 分片上传接口
+
+**请求**：
+```typescript
+POST /api/upload/chunk
+Content-Type: multipart/form-data
+
+file: <Blob>              // 分片数据
+chunkIndex: 0             // 当前分片索引
+totalChunks: 5            // 总分片数
+fileName: video.mp4       // 原始文件名
+fileSize: 10485760        // 原始文件大小
+```
+
+**响应**：
+```json
+{
+  "success": true,
+  "chunkIndex": 0
+}
+```
+
+#### 合并分片接口
+
+**请求**：
+```typescript
+POST /api/upload/merge
+Content-Type: application/json
+
+{
+  "fileName": "video.mp4",
+  "totalChunks": 5
+}
+```
+
+**响应**：
+```json
+{
+  "success": true,
+  "url": "/uploads/video.mp4"
+}
+```
+
+#### 查询已上传分片（断点续传）
+
+**请求**：
+```
+GET /api/upload/chunks?fileName=video.mp4&fileSize=10485760&chunkSize=2097152
+```
+
+**响应**：
+```json
+{
+  "uploadedChunks": [0, 1, 2]
+}
+```
+
 ## 断点续传
 
 支持断点续传，上传中断后可从上次位置继续，无需重新上传整个文件。
